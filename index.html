@@ -478,6 +478,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-seri
       <label class="toggle"><input type="checkbox" id="editResActive"><span class="toggle-slider"></span></label>
       <span style="font-size:13px;color:#334155;font-weight:600">이 결심 활성화</span>
     </div>
+    <div style="border-top:1px solid #e2e8f0;margin-top:14px;padding-top:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:13px;font-weight:700;color:#334155">⚙️ 세부 설정</span>
+        <button onclick="toggleEditCfg()" id="editCfgToggleBtn" style="font-size:11px;color:#2563eb;background:none;border:none;cursor:pointer;font-weight:600">펼치기 ▼</button>
+      </div>
+      <div id="editResConfig" style="display:none"></div>
+    </div>
     <div class="modal-btns">
       <button class="btn" onclick="closeModal('editResModal')">취소</button>
       <button class="btn btn-primary" onclick="saveEditResolution()">저장</button>
@@ -585,6 +592,7 @@ function freshTodayData(type){
   if(type==='abstinence') return {incidentCount:0,cravings:[],nobuyChecked:false};
   if(type==='training') return {minutes:0,checked:false};
   if(type==='financial') return {amount:0,checked:false};
+  if(type==='goal') return {checked:false,note:'',dailyCount:0};
   return {checked:false,note:''};
 }
 
@@ -705,10 +713,7 @@ function isResSuccess(r){
   }
   if(r.type==='training') return (td.minutes||0)>=(r.config.dailyTarget||1);
   if(r.type==='financial') return (td.amount||0)>0;
-  if(r.type==='goal'){
-    const ms=r.config.milestones||[];
-    return ms.some(m=>m.done);
-  }
+  if(r.type==='goal') return !!td.checked;
   return false;
 }
 
@@ -797,10 +802,14 @@ function buildTypeConfig(){
         <option value="count">🔢 횟수 입력</option>
       </select>
       <label>빈도</label>
-      <select id="cfgFreq">
+      <select id="cfgFreq" onchange="toggleWeeklyCount(this.value)">
         <option value="daily">매일</option>
         <option value="weekly">주 X회</option>
       </select>
+      <div id="cfgWeeklyCountWrap" style="display:none;margin-top:6px">
+        <label>주간 목표 횟수</label>
+        <input type="number" id="cfgWeeklyCount" value="3" min="1" max="7">
+      </div>
     `;
   } else if(t==='abstinence'){
     el.innerHTML=`
@@ -840,6 +849,7 @@ function buildTypeConfig(){
       <input type="number" id="cfgGoalTarget" placeholder="100">
     `;
     window._cfgMs=[];
+    setTimeout(()=>{const inp=document.getElementById('cfgMsInput');if(inp)inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addCfgMs();}};},50);
   } else if(t==='training'){
     el.innerHTML=`
       <label>하루 목표 시간 (분)</label>
@@ -889,7 +899,8 @@ function buildConfig(){
   const t=_newResType;
   if(t==='habit') return {
     checkType:document.getElementById('cfgHabitCheck')?.value||'binary',
-    frequency:document.getElementById('cfgFreq')?.value||'daily'
+    frequency:document.getElementById('cfgFreq')?.value||'daily',
+    weeklyTarget:parseInt(document.getElementById('cfgWeeklyCount')?.value)||3
   };
   if(t==='abstinence') return {
     maxAllowed:parseInt(document.getElementById('cfgMaxAllowed')?.value)||0,
@@ -919,6 +930,176 @@ function buildConfig(){
   return {};
 }
 
+// ── 퀘스트 카드 토글
+function toggleQuestBody(id,hdr){
+  const body=document.getElementById('qbody_'+id);
+  const arrow=document.getElementById('qarrow_'+id);
+  if(!body) return;
+  const hidden=body.style.display==='none';
+  body.style.display=hidden?'':'none';
+  if(arrow) arrow.textContent=hidden?'▲':'▼';
+}
+
+// ── 목표형 결심 오늘 완료
+function checkGoalToday(id){const r=S.resolutions.find(x=>x.id===id);if(!r||r.todayData.checked)return;r.todayData.checked=true;addXpCoin(calcDayXp(r),calcDayCoin(r),r.name);checkBadges();renderAll();}
+function uncheckGoalToday(id){const r=S.resolutions.find(x=>x.id===id);if(!r||!r.todayData.checked)return;if(!confirm('완료를 취소할까요? XP·코인이 차감됩니다.'))return;const xp=calcDayXp(r),coin=calcDayCoin(r);S.totalXp=Math.max(0,S.totalXp-xp);S.coins=Math.max(0,S.coins-coin);r.todayData.checked=false;r.todayData.dailyCount=0;save();renderAll();}
+
+// ── 목표형 일일 카운터
+function adjustGoalCount(id,delta){
+  const r=S.resolutions.find(x=>x.id===id);if(!r||r.todayData.checked)return;
+  const target=r.config.targetValue||0;
+  r.todayData.dailyCount=Math.max(0,Math.min(target,(r.todayData.dailyCount||0)+delta));
+  if(r.todayData.dailyCount>=target&&target>0&&!r.todayData.checked){
+    r.todayData.checked=true;
+    addXpCoin(calcDayXp(r),calcDayCoin(r),r.name+' '+target+r.config.unit);
+    checkBadges();
+  } else {save();}
+  renderAll();
+}
+
+// ── 충동 인라인 입력
+function toggleCravingInput(id){
+  const wrap=document.getElementById('cravingIn_'+id);
+  const inp=document.getElementById('cravingTxt_'+id);
+  if(!wrap) return;
+  const show=wrap.style.display==='none'||wrap.style.display==='';
+  wrap.style.display=show?'block':'none';
+  if(show&&inp){inp.focus();inp.onkeydown=e=>{if(e.key==='Enter'&&inp.value.trim()){logCraving(id,inp.value.trim());inp.value='';wrap.style.display='none';}};}
+}
+function logCravingCustom(id){toggleCravingInput(id);}
+
+// ── 메모 모달
+let _noteResId=null;
+function openNoteModal(id){
+  _noteResId=id;
+  const r=S.resolutions.find(x=>x.id===id);
+  document.getElementById('noteModalTitle').textContent=(r?r.name:'')+'  메모';
+  document.getElementById('noteInput').value=r&&r.todayData.note||'';
+  document.getElementById('noteModal').classList.add('open');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('noteConfirmBtn').onclick=()=>{
+    const r=S.resolutions.find(x=>x.id===_noteResId);
+    if(r){r.todayData.note=document.getElementById('noteInput').value.trim();save();}
+    closeModal('noteModal');showToast('메모 저장됨');
+  };
+});
+
+// ── 주간 횟수 토글
+function toggleWeeklyCount(v){const el=document.getElementById('cfgWeeklyCountWrap');if(el)el.style.display=v==='weekly'?'':'none';}
+
+// ── 편집 config 펼치기/접기
+function toggleEditCfg(){
+  const el=document.getElementById('editResConfig');
+  const btn=document.getElementById('editCfgToggleBtn');
+  const show=el.style.display==='none';
+  el.style.display=show?'':'none';
+  btn.textContent=show?'접기 ▲':'펼치기 ▼';
+}
+
+// ── 편집 config 빌드
+function buildEditConfig(r){
+  const el=document.getElementById('editResConfig'); if(!el) return;
+  const t=r.type; const c=r.config;
+  if(t==='habit'){
+    el.innerHTML=`
+      <label>체크 방식</label>
+      <select id="eCfgHabitCheck">
+        <option value="binary"${(c.checkType||'binary')==='binary'?' selected':''}>완료/미완료</option>
+        <option value="count"${c.checkType==='count'?' selected':''}>횟수 기록</option>
+      </select>
+      <label>빈도</label>
+      <select id="eCfgFreq" onchange="toggleEditWeekly(this.value)">
+        <option value="daily"${(c.frequency||'daily')==='daily'?' selected':''}>매일</option>
+        <option value="weekly"${c.frequency==='weekly'?' selected':''}>주 X회</option>
+      </select>
+      <div id="eCfgWeeklyWrap" style="display:${c.frequency==='weekly'?'':'none'};margin-top:6px">
+        <label>주간 목표 횟수</label>
+        <input type="number" id="eCfgWeeklyCount" value="${c.weeklyTarget||3}" min="1" max="7">
+      </div>`;
+  } else if(t==='abstinence'){
+    el.innerHTML=`
+      <label>하루 최대 허용 횟수</label>
+      <input type="number" id="eCfgMaxAllowed" value="${c.maxAllowed||0}" min="0">
+      <label>단위</label>
+      <input type="text" id="eCfgUnit" value="${c.unit||'회'}">
+      <label>개당 가격 (미구매 절약 계산용)</label>
+      <input type="number" id="eCfgItemPrice" value="${c.itemPrice||0}" min="0">`;
+  } else if(t==='goal'){
+    window._editMs=(c.milestones||[]).map(m=>({...m}));
+    el.innerHTML=`
+      <label>마일스톤 관리</label>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <input type="text" id="eCfgMsInput" placeholder="새 마일스톤..." style="flex:1">
+        <button class="btn btn-sm btn-primary" onclick="addEditMs()">추가</button>
+      </div>
+      <div id="eCfgMsList" style="max-height:150px;overflow-y:auto"></div>
+      <label style="margin-top:8px">측정 단위</label>
+      <input type="text" id="eCfgGoalUnit" value="${c.unit||''}">
+      <label>목표값</label>
+      <input type="number" id="eCfgGoalTarget" value="${c.targetValue||''}">`;
+    renderEditMs();
+    setTimeout(()=>{const inp=document.getElementById('eCfgMsInput');if(inp)inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();addEditMs();}};},50);
+  } else if(t==='training'){
+    el.innerHTML=`
+      <label>하루 목표 시간 (분)</label>
+      <input type="number" id="eCfgDailyMins" value="${c.dailyTarget||30}" min="1">
+      <label>총 누적 목표 시간 (시간)</label>
+      <input type="number" id="eCfgTotalHours" value="${c.totalTargetHours||100}" min="1">`;
+  } else if(t==='financial'){
+    el.innerHTML=`
+      <label>목표 금액</label>
+      <input type="number" id="eCfgFinTarget" value="${c.targetAmount||0}" min="0">
+      <label>단위</label>
+      <input type="text" id="eCfgFinUnit" value="${c.unit||'원'}">
+      <label>입력 빈도</label>
+      <select id="eCfgFinFreq">
+        <option value="daily"${(c.frequency||'daily')==='daily'?' selected':''}>매일</option>
+        <option value="weekly"${c.frequency==='weekly'?' selected':''}>주 1회</option>
+        <option value="monthly"${c.frequency==='monthly'?' selected':''}>월 1회</option>
+      </select>`;
+  }
+}
+function toggleEditWeekly(v){const el=document.getElementById('eCfgWeeklyWrap');if(el)el.style.display=v==='weekly'?'':'none';}
+function addEditMs(){const v=document.getElementById('eCfgMsInput')?.value.trim();if(!v)return;window._editMs.push({text:v,done:false});document.getElementById('eCfgMsInput').value='';renderEditMs();}
+function removeEditMs(i){window._editMs.splice(i,1);renderEditMs();}
+function renderEditMs(){
+  const el=document.getElementById('eCfgMsList');if(!el)return;el.innerHTML='';
+  (window._editMs||[]).forEach((m,i)=>{
+    const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:13px';
+    d.innerHTML=`<span style="font-size:14px">${m.done?'✅':'⬜'}</span><span style="flex:1">${m.text}</span><button onclick="removeEditMs(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px">×</button>`;
+    el.appendChild(d);
+  });
+}
+
+// ── 편집 config 저장
+function saveEditConfig(r){
+  const t=r.type;
+  if(document.getElementById('editResConfig')?.style.display==='none') return; // 펼치지 않으면 저장 안함
+  if(t==='habit'){
+    r.config.checkType=document.getElementById('eCfgHabitCheck')?.value||r.config.checkType;
+    r.config.frequency=document.getElementById('eCfgFreq')?.value||r.config.frequency;
+    if(r.config.frequency==='weekly') r.config.weeklyTarget=parseInt(document.getElementById('eCfgWeeklyCount')?.value)||3;
+  } else if(t==='abstinence'){
+    r.config.maxAllowed=parseInt(document.getElementById('eCfgMaxAllowed')?.value)??r.config.maxAllowed;
+    r.config.unit=document.getElementById('eCfgUnit')?.value||r.config.unit;
+    r.config.itemPrice=parseInt(document.getElementById('eCfgItemPrice')?.value)||0;
+  } else if(t==='goal'){
+    r.config.milestones=window._editMs||r.config.milestones;
+    r.config.unit=document.getElementById('eCfgGoalUnit')?.value||'';
+    const tv=parseFloat(document.getElementById('eCfgGoalTarget')?.value);
+    if(!isNaN(tv)) r.config.targetValue=tv;
+  } else if(t==='training'){
+    r.config.dailyTarget=parseInt(document.getElementById('eCfgDailyMins')?.value)||r.config.dailyTarget;
+    r.config.totalTargetHours=parseInt(document.getElementById('eCfgTotalHours')?.value)||r.config.totalTargetHours;
+  } else if(t==='financial'){
+    r.config.targetAmount=parseFloat(document.getElementById('eCfgFinTarget')?.value)||r.config.targetAmount;
+    r.config.unit=document.getElementById('eCfgFinUnit')?.value||r.config.unit;
+    r.config.frequency=document.getElementById('eCfgFinFreq')?.value||r.config.frequency;
+  }
+}
+
+// ── buildConfig에 weeklyCount 추가
 function buildGoalOptions(selId){return '<option value="">— 목표 없음 —</option>'+S.goals.map(g=>`<option value="${g.id}"${g.id===selId?' selected':''}>${g.text}</option>`).join('');}
 function populateGoalSelects(selId=''){document.getElementById('resGoalId').innerHTML=buildGoalOptions(selId);document.getElementById('editResGoalId').innerHTML=buildGoalOptions(selId);}
 
@@ -964,6 +1145,11 @@ function openEditRes(id){
   document.getElementById('editResCoin').value=r.reward.coinPerComplete;
   document.getElementById('editResActive').checked=r.active;
   document.getElementById('editResGoalId').innerHTML=buildGoalOptions(r.goalId||'');
+  // 세부 설정 섹션 접힌 상태로 초기화
+  const cfgEl=document.getElementById('editResConfig');
+  cfgEl.style.display='none';
+  document.getElementById('editCfgToggleBtn').textContent='펼치기 ▼';
+  buildEditConfig(r);
   document.getElementById('editResModal').classList.add('open');
 }
 
@@ -976,6 +1162,7 @@ function saveEditResolution(){
   r.reward.coinPerComplete=parseInt(document.getElementById('editResCoin').value)||r.reward.coinPerComplete;
   r.active=document.getElementById('editResActive').checked;
   r.goalId=document.getElementById('editResGoalId').value||null;
+  saveEditConfig(r);
   save(); closeModal('editResModal'); renderAll(); renderGoals();
 }
 
@@ -1069,10 +1256,16 @@ function toggleMilestone(resId, idx){
   const wasDone=ms.done;
   ms.done=!ms.done;
   if(!wasDone&&ms.done){
-    const xp=Math.round((r.reward.xpPerComplete||30)*2);
-    addXpCoin(xp,r.reward.coinPerComplete||15,'마일스톤 달성: '+ms.text);
+    showToast('✓ '+ms.text);
+    save();
   } else if(wasDone){
     save();
+  }
+  // 마일스톤 전체 완료 시 오늘 자동완료
+  const allDone=r.config.milestones.length>0&&r.config.milestones.every(m=>m.done);
+  if(allDone&&!r.todayData.checked){
+    r.todayData.checked=true;
+    addXpCoin(calcDayXp(r),calcDayCoin(r),r.name+' 모든 마일스톤 완료');
   }
   checkBadges(); renderAll();
 }
@@ -1181,13 +1374,14 @@ function buildQuestCard(r){
   div.className='quest-card'+(success?' done':'');
   const xp=calcDayXp(r)||r.reward.xpPerComplete;
   div.innerHTML=`
-    <div class="quest-header">
+    <div class="quest-header" onclick="toggleQuestBody('${r.id}',this)">
       <div class="quest-icon" style="background:${t.color}22;color:${t.color}">${r.icon}</div>
       <div class="quest-info">
         <div class="quest-name">${r.name}</div>
         <div class="quest-meta">${t.label} ${r.motivation?'· '+r.motivation.slice(0,20)+'…':''}</div>
       </div>
       <div class="quest-xp" style="background:${t.color}18;color:${t.color}">+${xp} XP</div>
+      <span style="font-size:10px;color:#cbd5e1;margin-left:4px" id="qarrow_${r.id}">▲</span>
     </div>
     <div class="quest-body" id="qbody_${r.id}"></div>
   `;
@@ -1207,6 +1401,8 @@ function buildHabitBody(el,r){
       ${checked?'✓ 완료!':'오늘 완료하기'}
     </button>
     ${checked?`<button class="undo-btn" onclick="uncheckHabit('${r.id}')">↩ 완료 취소</button>`:''}
+    <button class="undo-btn" style="margin-top:4px;color:#7c3aed;border-color:#ddd6fe" onclick="openNoteModal('${r.id}')">📝 ${r.todayData.note?'메모 수정':'메모 남기기'}</button>
+    ${r.todayData.note?`<div style="font-size:11px;color:#7c3aed;margin-top:4px;padding:6px 8px;background:#faf5ff;border-radius:7px">"${r.todayData.note}"</div>`:''}
   `;
 }
 
@@ -1237,7 +1433,10 @@ function buildAbsBody(el,r){
       <button class="craving-btn" onclick="logCraving('${r.id}','🚶 산책')">🚶 산책</button>
       <button class="craving-btn" onclick="logCraving('${r.id}','💪 운동')">💪 운동</button>
       <button class="craving-btn" onclick="logCraving('${r.id}','🧘 심호흡')">🧘 심호흡</button>
-      <button class="craving-btn" onclick="logCravingCustom('${r.id}')">✏️ 직접</button>
+      <button class="craving-btn" onclick="toggleCravingInput('${r.id}')">✏️ 직접</button>
+    </div>
+    <div id="cravingIn_${r.id}" style="display:none;margin-top:6px;display:none">
+      <input type="text" id="cravingTxt_${r.id}" placeholder="대신 한 행동 입력 후 Enter" style="width:100%;padding:7px 10px;border:1.5px solid #fed7aa;border-radius:8px;font-size:13px;outline:none">
     </div>`;
     if((td.cravings||[]).length>0) html+=`<div style="font-size:11px;color:#b45309;margin-top:4px">기록: ${td.cravings.slice(-3).join(', ')}</div>`;
   }
@@ -1283,20 +1482,69 @@ function buildTrainingBody(el,r){
 
 function buildGoalBody(el,r){
   const ms=r.config.milestones||[];
-  const doneCnt=ms.filter(m=>m.done).length;
-  const pct=ms.length?Math.round(doneCnt/ms.length*100):0;
-  let html=`<div style="font-size:12px;color:#64748b;margin-top:4px">마일스톤 ${doneCnt}/${ms.length} · ${pct}% 완료</div>
-    <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%;background:#7c3aed"></div></div>`;
-  if(ms.length===0) html+='<div style="font-size:12px;color:#94a3b8;margin-top:8px;padding:8px;background:#f8fafc;border-radius:8px">마일스톤을 추가하면 여기서 체크할 수 있어요</div>';
-  ms.forEach((m,i)=>{
-    html+=`<div class="milestone-item">
-      <div class="milestone-check${m.done?' done':''}" onclick="toggleMilestone('${r.id}',${i})">${m.done?'✓':''}</div>
-      <span class="milestone-text${m.done?' done':''}">${m.text}</span>
-    </div>`;
-  });
-  if(r.config.unit&&r.config.targetValue){
-    html+=`<div style="font-size:12px;color:#64748b;margin-top:8px">측정값: ${r.config.currentValue||0} / ${r.config.targetValue} ${r.config.unit}</div>`;
+  const msDone=ms.filter(m=>m.done).length;
+  const hasMeasure=r.config.targetValue>0;
+  const hasMs=ms.length>0;
+  const checked=r.todayData.checked;
+  const dailyCount=r.todayData.dailyCount||0;
+  const target=r.config.targetValue||0;
+  const unit=r.config.unit||'개';
+
+  let html='';
+
+  // ── 측정값 카운터 모드
+  if(hasMeasure){
+    const pct=Math.min(100,Math.round(dailyCount/target*100));
+    const done=dailyCount>=target;
+    html+=`
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:12px;color:#64748b;font-weight:600">오늘 달성</span>
+          <span style="font-size:14px;font-weight:800;color:${done?'#16a34a':'#7c3aed'}">${dailyCount} / ${target} ${unit}</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%;background:${done?'#22c55e':'#7c3aed'}"></div></div>
+        <div class="abs-counter-row" style="margin-top:8px">
+          <button class="abs-btn" onclick="adjustGoalCount('${r.id}',-1)">−</button>
+          <div class="abs-num" style="color:${done?'#16a34a':'#7c3aed'};font-size:26px">${dailyCount}</div>
+          <button class="abs-btn" onclick="adjustGoalCount('${r.id}',1)" ${done?'disabled':''}>+</button>
+          <span class="abs-status ${done?'abs-ok':'abs-warn'}">${done?'목표 달성!':target-dailyCount+unit+' 남음'}</span>
+        </div>
+      </div>`;
+    if(checked) html+=`<div style="font-size:12px;color:#16a34a;font-weight:700;margin-top:8px;text-align:center">✅ 오늘 완료!</div>
+      <button class="undo-btn" style="margin-top:4px" onclick="uncheckGoalToday('${r.id}')">↩ 완료 취소</button>`;
   }
+
+  // ── 마일스톤 체크리스트
+  if(hasMs){
+    const msPct=Math.round(msDone/ms.length*100);
+    html+=`<div style="font-size:12px;color:#64748b;margin-top:${hasMeasure?10:4}px">마일스톤 ${msDone}/${ms.length} · ${msPct}%</div>
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${msPct}%;background:#7c3aed"></div></div>`;
+    ms.forEach((m,i)=>{
+      html+=`<div class="milestone-item">
+        <div class="milestone-check${m.done?' done':''}" onclick="toggleMilestone('${r.id}',${i})">${m.done?'✓':''}</div>
+        <span class="milestone-text${m.done?' done':''}">${m.text}</span>
+      </div>`;
+    });
+  }
+
+  // ── 수동 완료 버튼 (측정값도 마일스톤도 없을 때)
+  if(!hasMeasure && !hasMs){
+    html+=`<button class="big-check-btn ${checked?'checked':'unchecked'}" ${checked?'disabled':''} style="margin-top:10px" onclick="checkGoalToday('${r.id}')">
+      ${checked?'✓ 오늘 진행 완료!':'오늘 진행했어요'}
+    </button>`;
+    if(checked) html+=`<button class="undo-btn" onclick="uncheckGoalToday('${r.id}')">↩ 완료 취소</button>`;
+  }
+
+  if(!hasMeasure && !hasMs){}
+  else if(!hasMs && !checked){
+    // 측정값만 있는 경우 안내 없음 (카운터가 자동완료)
+  } else if(!hasMeasure && !checked){
+    // 마일스톤만 있는 경우 안내
+    html+=`<div style="font-size:11px;color:#94a3b8;margin-top:8px;text-align:center">모든 마일스톤 완료 시 자동으로 오늘이 완료됩니다</div>`;
+  }
+
+  if(ms.length===0 && !hasMeasure) html+='<div style="font-size:12px;color:#94a3b8;margin-top:8px;padding:8px;background:#f8fafc;border-radius:8px">✏️ 수정에서 마일스톤이나 목표값을 추가하세요</div>';
+
   el.innerHTML=html;
 }
 
