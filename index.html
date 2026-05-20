@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>작심삼년</title>
+<style>
+:root{color-scheme:light}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:#f0f4ff;color:#1e293b;min-height:100vh}
+
+/* ── Header ── */
+.brand-header{background:linear-gradient(135deg,#1e40af 0%,#3b82f6 100%);padding:16px 20px 0;color:white}
+.brand-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.brand-name{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.brand-name span{color:#fbbf24}
+.user-coins{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.15);padding:6px 12px;border-radius:20px;font-size:13px;font-weight:700}
+.level-xp-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.level-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;white-space:nowrap}
+.xp-section{flex:1}.xp-text{font-size:11px;color:rgba(255,255,255,.75);margin-bottom:4px}
+.xp-bar-bg{background:rgba(255,255,255,.2);border-radius:6px;height:8px;overflow:hidden}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);border-radius:6px;transition:width .5s}
+.streak-badge{display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.15);border-radius:10px;padding:6px 12px;min-width:54px}
+.streak-num{font-size:22px;font-weight:800;line-height:1}
+.streak-lbl{font-size:10px;color:rgba(255,255,255,.75)}
+
+/* ── Tabs ── */
+.tab-nav{display:flex;background:white;border-bottom:1px solid #e2e8f0;overflow-x:auto}
+.tab-btn{flex:1;min-width:52px;padding:11px 4px;font-size:11px;font-weight:600;color:#64748b;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab-btn.active{color:#2563eb;border-bottom-color:#2563eb}
+.tab-pane{display:none;padding:14px}
+.tab-pane.active{display:block}
+
+/* ── Cards ── */
+.card{background:white;border-radius:14px;padding:16px 18px;margin-bottom:12px;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card-title{font-size:14px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:6px}
+.card-title-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+
+/* ── Today Achievement Bar ── */
+.achieve-bar-wrap{background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:16px 18px;margin-bottom:12px;color:white}
+.achieve-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.achieve-label{font-size:12px;color:rgba(255,255,255,.6)}
+.achieve-pct{font-size:28px;font-weight:800;color:#fbbf24}
+.achieve-bar-bg{background:rgba(255,255,255,.15);border-radius:6px;height:10px;overflow:hidden}
+.achieve-bar-fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);border-radius:6px;transition:width .6s}
+.achieve-detail{font-size:11px;color:rgba(255,255,255,.5);margin-top:6px}
+
+/* ── Resolution Quest Cards ── */
+.quest-card{background:white;border-radius:14px;margin-bottom:10px;border:1.5px solid #e2e8f0;overflow:hidden;transition:border-color .2s}
+.quest-card.done{border-color:#86efac;background:#f0fdf4}
+.quest-card.failed{border-color:#fca5a5;background:#fff5f5}
+.quest-header{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer}
+.quest-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.quest-info{flex:1;min-width:0}
+.quest-name{font-size:14px;font-weight:700;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.quest-meta{font-size:11px;color:#94a3b8;margin-top:2px}
+.quest-xp{font-size:11px;font-weight:700;padding:3px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0}
+.quest-body{padding:0 16px 14px;border-top:1px solid #f1f5f9}
+
+/* ── Habit Card ── */
+.big-check-btn{width:100%;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:10px}
+.big-check-btn.unchecked{background:#eff6ff;color:#2563eb;border:1.5px solid #bfdbfe}
+.big-check-btn.unchecked:hover{background:#2563eb;color:white}
+.big-check-btn.checked{background:#22c55e;color:white;cursor:default}
+.undo-btn{width:100%;padding:7px;border-radius:8px;background:none;border:1px solid #e2e8f0;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;margin-top:5px}
+.undo-btn:hover{border-color:#f87171;color:#f87171}
+
+/* ── Abstinence Card ── */
+.abs-counter-row{display:flex;align-items:center;gap:14px;margin-top:10px}
+.abs-btn{width:38px;height:38px;border-radius:9px;border:1.5px solid #e2e8f0;background:white;font-size:20px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.abs-btn:hover{border-color:#2563eb;background:#eff6ff}
+.abs-num{font-size:32px;font-weight:800;min-width:44px;text-align:center}
+.abs-status{font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px}
+.abs-ok{background:#dcfce7;color:#16a34a}
+.abs-warn{background:#fef3c7;color:#d97706}
+.abs-bad{background:#fee2e2;color:#dc2626}
+.craving-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.craving-btn{padding:5px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1px solid #fed7aa;background:white;color:#92400e;cursor:pointer}
+.craving-btn:hover{background:#fef3c7}
+.abs-streak-row{display:flex;align-items:center;gap:10px;margin-top:10px;padding:8px 12px;background:#f8fafc;border-radius:9px}
+.abs-streak-days{font-size:22px;font-weight:800;color:#16a34a}
+.abs-streak-info{flex:1;font-size:11px;color:#64748b}
+
+/* ── Training Card ── */
+.training-input-row{display:flex;align-items:center;gap:10px;margin-top:10px}
+.training-input-row label{font-size:12px;color:#64748b;font-weight:600;white-space:nowrap}
+.training-input-row input{width:80px;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:700;text-align:center;outline:none}
+.training-input-row input:focus{border-color:#059669}
+.progress-bar-wrap{height:6px;background:#f1f5f9;border-radius:4px;overflow:hidden;margin-top:8px}
+.progress-bar-fill{height:100%;border-radius:4px;transition:width .5s}
+.training-total{font-size:12px;color:#64748b;margin-top:5px}
+
+/* ── Goal Card ── */
+.milestone-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f8fafc}
+.milestone-check{width:20px;height:20px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:11px;color:transparent;transition:all .15s}
+.milestone-check.done{background:#22c55e;border-color:#22c55e;color:white}
+.milestone-text{flex:1;font-size:13px;color:#334155}
+.milestone-text.done{color:#94a3b8;text-decoration:line-through}
+
+/* ── Financial Card ── */
+.fin-input-row{display:flex;align-items:center;gap:8px;margin-top:10px}
+.fin-input-row input{flex:1;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-weight:700;outline:none}
+.fin-input-row input:focus{border-color:#d97706}
+.fin-unit{font-size:13px;color:#64748b;font-weight:600;white-space:nowrap}
+.fin-progress{font-size:12px;color:#d97706;font-weight:700;margin-top:6px}
+
+/* ── Resolution List (결심 tab) ── */
+.res-list-item{background:white;border-radius:12px;padding:14px 16px;margin-bottom:8px;border:1.5px solid #e2e8f0;display:flex;align-items:center;gap:12px}
+.res-list-icon{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.res-list-info{flex:1;min-width:0}
+.res-list-name{font-size:14px;font-weight:700;color:#0f172a}
+.res-list-type{font-size:11px;color:#94a3b8;margin-top:2px}
+.res-list-actions{display:flex;gap:5px;flex-shrink:0}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:14px;padding:4px;opacity:.4;transition:opacity .15s;line-height:1}
+.icon-btn:hover{opacity:1}
+
+/* ── Template Grid ── */
+.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.template-card{background:white;border:1.5px solid #e2e8f0;border-radius:11px;padding:12px;cursor:pointer;transition:all .15s;text-align:left}
+.template-card:hover{border-color:#2563eb;background:#eff6ff}
+.template-card .t-icon{font-size:22px;margin-bottom:4px}
+.template-card .t-name{font-size:12px;font-weight:700;color:#1e293b}
+.template-card .t-type{font-size:10px;color:#94a3b8;margin-top:2px}
+
+/* ── Type Selector ── */
+.type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.type-card{border:1.5px solid #e2e8f0;border-radius:11px;padding:13px 12px;cursor:pointer;transition:all .15s;text-align:center}
+.type-card:hover{border-color:#2563eb}
+.type-card.selected{border-color:#2563eb;background:#eff6ff}
+.type-card .t-icon{font-size:26px;margin-bottom:5px}
+.type-card .t-name{font-size:13px;font-weight:700;color:#1e293b}
+.type-card .t-desc{font-size:10px;color:#94a3b8;margin-top:2px;line-height:1.3}
+
+/* ── Badges ── */
+.badge-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.badge-item{background:white;border-radius:12px;padding:14px 10px;text-align:center;border:1.5px solid #e2e8f0}
+.badge-item.unlocked{border-color:#fbbf24;background:linear-gradient(135deg,#fefce8,#fff)}
+.badge-item.locked{opacity:.4;filter:grayscale(1)}
+.badge-emoji{font-size:28px;margin-bottom:6px}
+.badge-name{font-size:11px;font-weight:700;color:#1e293b}
+.badge-desc{font-size:10px;color:#94a3b8;margin-top:2px;line-height:1.3}
+
+/* ── Buttons ── */
+.btn{padding:8px 14px;border-radius:10px;font-size:12px;font-weight:600;border:1.5px solid #e2e8f0;background:white;color:#475569;cursor:pointer;transition:all .15s}
+.btn:hover{border-color:#2563eb;color:#2563eb;background:#eff6ff}
+.btn-primary{background:#2563eb;color:white;border:none}
+.btn-primary:hover{background:#1d4ed8;color:white}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:7px}
+.btn-danger{border-color:#fecaca;color:#dc2626}
+.btn-danger:hover{background:#fef2f2}
+
+/* ── Modals ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:white;border-radius:18px;padding:22px;width:calc(100% - 32px);max-width:400px;box-shadow:0 20px 50px rgba(0,0,0,.2);max-height:92vh;overflow-y:auto}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px;color:#0f172a}
+.modal label{display:block;font-size:12px;font-weight:600;color:#475569;margin-bottom:4px;margin-top:12px}
+.modal input,.modal select,.modal textarea{width:100%;padding:8px 10px;border-radius:8px;border:1.5px solid #e2e8f0;font-size:13px;outline:none;color:#1e293b;font-family:inherit}
+.modal input:focus,.modal select:focus,.modal textarea:focus{border-color:#2563eb}
+.modal-btns{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.step-indicator{display:flex;gap:6px;justify-content:center;margin-bottom:16px}
+.step-dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0;transition:.2s}
+.step-dot.active{background:#2563eb;width:20px;border-radius:4px}
+
+/* ── Tutorial ── */
+.tutorial-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.92);z-index:200;align-items:center;justify-content:center}
+.tutorial-overlay.open{display:flex}
+.tutorial-box{background:white;border-radius:20px;padding:28px 24px;width:calc(100%-32px);max-width:380px;text-align:center}
+.tutorial-emoji{font-size:52px;margin-bottom:12px}
+.tutorial-title{font-size:20px;font-weight:800;color:#0f172a;margin-bottom:8px}
+.tutorial-body{font-size:13px;color:#475569;line-height:1.7;margin-bottom:20px}
+.tutorial-lore{font-size:12px;color:#94a3b8;font-style:italic;background:#f8fafc;border-radius:8px;padding:10px 14px;margin-bottom:16px;line-height:1.6}
+
+/* ── Achievement Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#0f172a;color:white;padding:12px 20px;border-radius:30px;font-size:13px;font-weight:700;z-index:300;transition:transform .4s;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ── Misc ── */
+.empty{text-align:center;color:#94a3b8;font-size:13px;padding:24px 0}
+.section-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:14px;background:#eff6ff;border:1px solid #bfdbfe;font-size:11px;color:#2563eb;font-weight:600;margin:2px}
+.tag-chip button{background:none;border:none;cursor:pointer;color:#93c5fd;font-size:13px;line-height:1;padding:0}
+.tag-chip button:hover{color:#dc2626}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.filter-chip{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;border:1.5px solid #e2e8f0;background:white;color:#64748b;cursor:pointer;transition:all .15s;white-space:nowrap}
+.filter-chip.active{background:#2563eb;color:white;border-color:#2563eb}
+.filter-chip:hover:not(.active){border-color:#93c5fd;color:#2563eb}
+.today-group-hdr{font-size:11px;font-weight:700;color:#0284c7;padding:5px 2px 4px;border-bottom:1.5px solid #bae6fd;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.subgoal-item{display:flex;align-items:center;padding:9px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:7px;gap:8px}
+.subgoal-check{width:18px;height:18px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;font-size:10px;color:transparent;transition:all .15s}
+.subgoal-item.done .subgoal-check{background:#22c55e;border-color:#22c55e;color:white}
+.subgoal-text{flex:1;font-size:13px;color:#334155}
+.subgoal-item.done .subgoal-text{color:#94a3b8;text-decoration:line-through}
+.big-goal-card{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1.5px solid #bae6fd;border-radius:14px;padding:16px;margin-bottom:12px}
+.big-goal-label{font-size:11px;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.big-goal-text{font-size:17px;font-weight:800;color:#0c4a6e;margin-bottom:10px;line-height:1.3}
+.goal-progress-bg{height:7px;background:rgba(0,0,0,.1);border-radius:4px;overflow:hidden;margin:8px 0 5px}
+.goal-progress-fill{height:100%;background:#0ea5e9;border-radius:4px;transition:width .5s}
+.rec-item{display:flex;align-items:center;padding:10px 12px;border-radius:10px;margin-bottom:7px;background:#fff7ed;border:1.5px solid #fed7aa;gap:7px;flex-wrap:wrap}
+.rec-name{flex:1;font-size:13px;font-weight:500;min-width:80px}
+.rec-amt{font-size:13px;font-weight:700;color:#ea580c;white-space:nowrap}
+.rec-status{font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap}
+.rs-urgent{background:#fee2e2;color:#dc2626}
+.rs-warn{background:#fef3c7;color:#d97706}
+.rs-ok{background:#f0fdf4;color:#16a34a}
+.coin-hero{background:linear-gradient(135deg,#7c3aed,#a855f7);border-radius:14px;padding:20px;color:white;text-align:center;margin-bottom:14px}
+.coin-amount{font-size:44px;font-weight:800}
+.hist-filter-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.hist-filter-btn{padding:5px 12px;border-radius:18px;font-size:12px;font-weight:600;border:1.5px solid #e2e8f0;background:white;color:#64748b;cursor:pointer}
+.hist-filter-btn.active{border-color:#2563eb;background:#eff6ff;color:#2563eb}
+.hist-row{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:4px;align-items:center;padding:9px 0;border-bottom:1px solid #f1f5f9;font-size:12px}
+.hist-row.header{font-weight:700;color:#64748b;font-size:11px;border-bottom:2px solid #e2e8f0;padding-bottom:6px}
+.hist-xp{color:#2563eb;font-weight:700}
+.hist-coin{color:#7c3aed;font-weight:700}
+.hist-bar-wrap{height:4px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:3px}
+.hist-bar{height:100%;border-radius:3px;background:linear-gradient(90deg,#2563eb,#3b82f6)}
+.hist-sum-cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.hist-sum-card{background:white;border:1px solid #e2e8f0;border-radius:11px;padding:11px;text-align:center}
+.hist-sum-val{font-size:20px;font-weight:800;color:#1e293b}
+.hist-sum-lbl{font-size:10px;color:#94a3b8;margin-top:2px}
+.toggle-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
+.toggle{position:relative;width:40px;height:22px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#cbd5e1;border-radius:22px;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s}
+.toggle input:checked+.toggle-slider{background:#2563eb}
+.toggle input:checked+.toggle-slider:before{transform:translateX(18px)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- Header -->
+<div class="brand-header">
+  <div class="brand-top">
+    <div class="brand-name">작심<span>삼년</span></div>
+    <div class="user-coins">🪙 <span id="coinDisplay">0</span></div>
+  </div>
+  <div class="level-xp-row">
+    <div class="level-badge" id="levelBadge">Lv.1 입주자 🏠</div>
+    <div class="xp-section">
+      <div class="xp-text" id="xpText">총 0 XP</div>
+      <div class="xp-bar-bg"><div class="xp-bar-fill" id="xpFill" style="width:0%"></div></div>
+    </div>
+    <div class="streak-badge">
+      <div class="streak-num" id="streakNum">0</div>
+      <div class="streak-lbl">🔥 연속</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('today')">⚔️ 오늘</button>
+  <button class="tab-btn" onclick="switchTab('resolutions')">🎯 결심</button>
+  <button class="tab-btn" onclick="switchTab('achievements')">🏆 업적</button>
+  <button class="tab-btn" onclick="switchTab('goals')">📌 목표</button>
+  <button class="tab-btn" onclick="switchTab('history')">📊 기록</button>
+  <button class="tab-btn" onclick="switchTab('rec')">💰 미수금</button>
+</div>
+
+<!-- TODAY TAB -->
+<div id="tab-today" class="tab-pane active">
+  <div class="achieve-bar-wrap">
+    <div class="achieve-top">
+      <div>
+        <div class="achieve-label">오늘의 달성률</div>
+        <div class="achieve-pct"><span id="achievePct">0</span>%</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:24px;font-weight:800;color:white"><span id="todayXp">0</span> XP</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px">오늘 획득</div>
+      </div>
+    </div>
+    <div class="achieve-bar-bg"><div class="achieve-bar-fill" id="achieveBarFill" style="width:0%"></div></div>
+    <div class="achieve-detail" id="achieveDetail">결심을 추가하면 오늘의 미션이 나타납니다</div>
+  </div>
+  <div style="background:white;border-radius:12px;padding:10px 12px;margin-bottom:10px;border:1px solid #e2e8f0">
+    <div style="display:flex;align-items:center;gap:5px;margin-bottom:7px">
+      <span style="font-size:10px;font-weight:700;color:#94a3b8;min-width:24px">정렬</span>
+      <div style="display:flex;flex-wrap:wrap;gap:5px" id="sortChips">
+        <button class="filter-chip active" data-sort="default" onclick="setTodaySort('default',this)">기본</button>
+        <button class="filter-chip" data-sort="goal" onclick="setTodaySort('goal',this)">목표별</button>
+        <button class="filter-chip" data-sort="undone" onclick="setTodaySort('undone',this)">미달성 먼저</button>
+        <button class="filter-chip" data-sort="done" onclick="setTodaySort('done',this)">달성 먼저</button>
+        <button class="filter-chip" data-sort="type" onclick="setTodaySort('type',this)">유형별</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px">
+      <span style="font-size:10px;font-weight:700;color:#94a3b8;min-width:24px">필터</span>
+      <div style="display:flex;flex-wrap:wrap;gap:5px" id="filterChips">
+        <button class="filter-chip active" data-filter="all" onclick="setTodayFilter('all',this)">전체</button>
+        <button class="filter-chip" data-filter="undone" onclick="setTodayFilter('undone',this)">미달성만</button>
+        <button class="filter-chip" data-filter="done" onclick="setTodayFilter('done',this)">달성만</button>
+        <button class="filter-chip" data-filter="nogoal" onclick="setTodayFilter('nogoal',this)">목표 미연결</button>
+      </div>
+    </div>
+  </div>
+  <div id="todayCards"></div>
+  <div id="todayEmptyMsg" style="display:none">
+    <div class="empty">
+      <div style="font-size:36px;margin-bottom:8px">⚔️</div>
+      아직 결심이 없습니다<br>
+      <span style="font-size:12px">'결심' 탭에서 첫 결심을 세워보세요</span><br><br>
+      <button class="btn btn-primary" onclick="switchTab('resolutions')">결심 세우기 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESOLUTIONS TAB -->
+<div id="tab-resolutions" class="tab-pane">
+  <div class="card-title-row card" style="margin-bottom:10px">
+    <div class="card-title">🎯 나의 결심</div>
+    <button class="btn btn-primary btn-sm" onclick="openNewResModal()">+ 새 결심</button>
+  </div>
+  <div id="resList"></div>
+</div>
+
+<!-- ACHIEVEMENTS TAB -->
+<div id="tab-achievements" class="tab-pane">
+  <div class="card">
+    <div class="card-title" style="margin-bottom:14px">🏆 획득 업적</div>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </div>
+</div>
+
+<!-- GOALS TAB -->
+<div id="tab-goals" class="tab-pane">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="font-size:15px;font-weight:800;color:#0f172a">🎯 나의 목표들</span>
+    <button class="btn btn-primary" onclick="openGoalModal(-1)">+ 목표 추가</button>
+  </div>
+  <div id="goalsList"><div class="empty">목표를 추가해 보세요</div></div>
+</div>
+
+<!-- HISTORY TAB -->
+<div id="tab-history" class="tab-pane">
+  <div class="card">
+    <div class="card-title" style="margin-bottom:12px">📊 나의 기록</div>
+    <div class="hist-filter-row">
+      <button class="hist-filter-btn active" onclick="setHistFilter('day',this)">일별</button>
+      <button class="hist-filter-btn" onclick="setHistFilter('week',this)">주별</button>
+      <button class="hist-filter-btn" onclick="setHistFilter('month',this)">월별</button>
+    </div>
+    <div class="hist-sum-cards" id="histSummary"></div>
+    <div id="histTable"></div>
+  </div>
+</div>
+
+<!-- RECEIVABLES TAB -->
+<div id="tab-rec" class="tab-pane">
+  <div class="card">
+    <div class="card-title-row">
+      <div class="card-title">💰 미수금 현황</div>
+      <button class="btn" onclick="openRecModal(-1)">+ 추가</button>
+    </div>
+    <div id="recList"><div class="empty">미수금이 없습니다 👍</div></div>
+    <div id="recTotalRow" style="display:none;justify-content:space-between;padding:10px 12px;background:#fff7ed;border-radius:9px;border:1px solid #fed7aa;margin-top:8px">
+      <span style="font-size:12px;font-weight:600;color:#64748b">총 미수금</span>
+      <span style="font-size:15px;font-weight:800;color:#dc2626" id="recTotalAmt"></span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /#app -->
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<!-- ── TUTORIAL OVERLAY ── -->
+<div class="tutorial-overlay" id="tutorialOverlay">
+  <div class="tutorial-box">
+    <div id="tutStep0">
+      <div class="tutorial-emoji">🌑</div>
+      <div class="tutorial-title">방랑자여, 환영합니다</div>
+      <div class="tutorial-lore">"연결되지 않은 힘은 폭풍이다.<br>연결된 힘은 문명이다."<br>— 유나, 에크로스 협약 서문</div>
+      <div class="tutorial-body">당신은 지금 에크로스의 방랑자입니다.<br>아지트유니온의 입주자가 되려면<br><strong>첫 번째 결심</strong>을 세워야 합니다.</div>
+      <button class="btn btn-primary" style="width:100%" onclick="tutNext(1)">결심 세우기 →</button>
+      <button class="btn" style="width:100%;margin-top:8px" onclick="closeTutorial()">나중에 하기</button>
+    </div>
+    <div id="tutStep1" style="display:none">
+      <div class="tutorial-emoji">🎯</div>
+      <div class="tutorial-title">첫 번째 결심</div>
+      <div class="tutorial-body">결심의 종류를 고르고<br>달성 방법, 체크 방법, 보상을 설정합니다.<br><br>아래 버튼으로 지금 바로 시작하세요!</div>
+      <button class="btn btn-primary" style="width:100%" onclick="closeTutorial();openNewResModal()">결심 만들기 →</button>
+    </div>
+    <div id="tutStep2" style="display:none">
+      <div class="tutorial-emoji">🏠</div>
+      <div class="tutorial-title">입주자가 되었습니다!</div>
+      <div class="tutorial-body">첫 번째 결심을 세웠습니다.<br>매일 체크하며 XP를 쌓으면<br>에크로스 계급이 올라갑니다.<br><br><strong>방랑자 → 입주자 → 운영자 → 파트너 → 유니오니스트 → 마스터</strong></div>
+      <button class="btn btn-primary" style="width:100%" onclick="closeTutorial()">오늘 미션 확인 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── NEW RESOLUTION MODAL (multi-step) ── -->
+<div class="modal-bg" id="newResModal">
+  <div class="modal">
+    <div class="step-indicator" id="stepDots"></div>
+    <!-- Step 1: Type -->
+    <div id="resStep1">
+      <h3>어떤 결심인가요?</h3>
+      <div class="type-grid" id="typeGrid"></div>
+      <div class="modal-btns">
+        <button class="btn" onclick="closeModal('newResModal')">취소</button>
+        <button class="btn btn-primary" onclick="resStepNext(2)">다음 →</button>
+      </div>
+    </div>
+    <!-- Step 2: Basic info -->
+    <div id="resStep2" style="display:none">
+      <h3>결심 기본 정보</h3>
+      <label>결심 이름</label>
+      <input type="text" id="resName" placeholder="예: 매일 30분 운동">
+      <label>이모지</label>
+      <input type="text" id="resIcon" placeholder="💪" maxlength="2">
+      <label>동기 — 왜 이 결심을 세우나요?</label>
+      <textarea id="resMotivation" rows="2" style="resize:none" placeholder="예: 건강한 몸으로 오래 살기 위해"></textarea>
+      <div class="modal-btns">
+        <button class="btn" onclick="resStepNext(1)">← 이전</button>
+        <button class="btn btn-primary" onclick="resStepNext(3)">다음 →</button>
+      </div>
+    </div>
+    <!-- Step 3: Type config -->
+    <div id="resStep3" style="display:none">
+      <h3 id="resStep3Title">세부 설정</h3>
+      <div id="resTypeConfig"></div>
+      <div class="modal-btns">
+        <button class="btn" onclick="resStepNext(2)">← 이전</button>
+        <button class="btn btn-primary" onclick="resStepNext(4)">다음 →</button>
+      </div>
+    </div>
+    <!-- Step 4: Rewards -->
+    <div id="resStep4" style="display:none">
+      <h3>보상 설정</h3>
+      <label>완료 시 XP</label>
+      <input type="number" id="resXp" value="30" min="1" max="500">
+      <label>완료 시 코인</label>
+      <input type="number" id="resCoin" value="15" min="0" max="200">
+      <label>난이도</label>
+      <select id="resDifficulty">
+        <option value="1">🌱 쉬움 (XP ×1.0)</option>
+        <option value="1.5" selected>⚡ 보통 (XP ×1.5)</option>
+        <option value="2">🔥 어려움 (XP ×2.0)</option>
+        <option value="3">💀 도전 (XP ×3.0)</option>
+      </select>
+      <div class="toggle-wrap" style="margin-top:14px">
+        <label class="toggle"><input type="checkbox" id="resStreakBonus" checked><span class="toggle-slider"></span></label>
+        <span style="font-size:13px;color:#334155;font-weight:600">연속 달성 보너스 활성화</span>
+      </div>
+      <label style="margin-top:14px">목표 연결 (선택)</label>
+      <select id="resGoalId"><option value="">— 목표 없음 —</option></select>
+      <div class="modal-btns">
+        <button class="btn" onclick="resStepNext(3)">← 이전</button>
+        <button class="btn btn-primary" onclick="saveNewResolution()">저장 ✓</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── EDIT RESOLUTION MODAL ── -->
+<div class="modal-bg" id="editResModal">
+  <div class="modal">
+    <h3>결심 수정</h3>
+    <label>결심 이름</label><input type="text" id="editResName">
+    <label>이모지</label><input type="text" id="editResIcon" maxlength="2">
+    <label>동기</label><textarea id="editResMotivation" rows="2" style="resize:none"></textarea>
+    <label>완료 시 XP</label><input type="number" id="editResXp" min="1" max="500">
+    <label>완료 시 코인</label><input type="number" id="editResCoin" min="0" max="200">
+    <label>목표 연결</label>
+    <select id="editResGoalId"><option value="">— 목표 없음 —</option></select>
+    <label>활성화</label>
+    <div class="toggle-wrap">
+      <label class="toggle"><input type="checkbox" id="editResActive"><span class="toggle-slider"></span></label>
+      <span style="font-size:13px;color:#334155;font-weight:600">이 결심 활성화</span>
+    </div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('editResModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveEditResolution()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── GOAL MODAL ── -->
+<div class="modal-bg" id="goalModal">
+  <div class="modal">
+    <h3 id="goalModalTitle">큰 목표 추가</h3>
+    <label>목표</label><input type="text" id="goalTextInput" placeholder="예: 올해 안에 독립 창업">
+    <label>시작일</label><input type="date" id="goalStartInput">
+    <label>목표일</label><input type="date" id="goalEndInput">
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('goalModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveGoal()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUBGOAL EDIT MODAL ── -->
+<div class="modal-bg" id="sgModal">
+  <div class="modal">
+    <h3 id="sgModalTitle">결실 추가</h3>
+    <label>결실 내용</label><input type="text" id="sgInput" placeholder="예: 토익 800점 취득">
+    <label>메모 (선택)</label><input type="text" id="sgDescInput" placeholder="어떻게 달성할지 간략히">
+    <label>목표 기한 (선택)</label><input type="date" id="sgDueInput">
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('sgModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveSg()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── RECEIVABLE MODAL ── -->
+<div class="modal-bg" id="recModal">
+  <div class="modal">
+    <h3 id="recModalTitle">미수금 추가</h3>
+    <label>거래처/프로젝트</label><input type="text" id="recNameIn" placeholder="예: OO물류 외주 잔금">
+    <label>금액 (만원)</label><input type="number" id="recAmtIn" placeholder="150">
+    <label>상태</label>
+    <select id="recStatusIn">
+      <option value="ok">납기 이내</option>
+      <option value="warn">1~2주 지연</option>
+      <option value="urgent">1개월+ 지연</option>
+    </select>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('recModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveRec()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── NOTE INPUT MODAL ── -->
+<div class="modal-bg" id="noteModal">
+  <div class="modal">
+    <h3 id="noteModalTitle">오늘 메모</h3>
+    <label>메모 (선택)</label>
+    <textarea id="noteInput" rows="3" style="resize:none" placeholder="오늘 어땠나요?"></textarea>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal('noteModal')">취소</button>
+      <button class="btn btn-primary" id="noteConfirmBtn">완료</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════════════
+const LEVELS=[
+  {name:'Lv.1 입주자 🏠',min:0,next:500},
+  {name:'Lv.2 운영자 🔑',min:500,next:1500},
+  {name:'Lv.3 파트너 🤝',min:1500,next:3500},
+  {name:'Lv.4 유니오니스트 ⚡',min:3500,next:7000},
+  {name:'Lv.5 마스터 👑',min:7000,next:null}
+];
+
+const RES_TYPES={
+  habit:{label:'습관',icon:'🔄',color:'#2563eb',desc:'매일 반복하는 좋은 행동'},
+  abstinence:{label:'금지',icon:'🚫',color:'#dc2626',desc:'줄이거나 끊어야 할 습관'},
+  goal:{label:'목표',icon:'🎯',color:'#7c3aed',desc:'달성할 구체적인 결과물'},
+  training:{label:'수련',icon:'📖',color:'#059669',desc:'시간 투자로 실력 키우기'},
+  financial:{label:'재정',icon:'💰',color:'#d97706',desc:'저축·매출 등 돈 목표'}
+};
+
+const ALL_BADGES=[
+  {id:'first_res',icon:'🌟',name:'첫 번째 결심',desc:'결심을 처음 세웠어요',condition:s=>s.resolutions.length>0},
+  {id:'first_check',icon:'✅',name:'첫 체크인',desc:'처음으로 오늘 미션을 완료했어요',condition:s=>s.totalXp>0},
+  {id:'streak7',icon:'🔥',name:'7일 연속',desc:'7일 연속 달성!',condition:s=>s.streak>=7},
+  {id:'streak30',icon:'💎',name:'30일 연속',desc:'30일 연속 달성! 철인급',condition:s=>s.streak>=30},
+  {id:'xp500',icon:'⚡',name:'운영자 달성',desc:'총 500 XP 돌파',condition:s=>s.totalXp>=500},
+  {id:'xp1500',icon:'🤝',name:'파트너 달성',desc:'총 1500 XP 돌파',condition:s=>s.totalXp>=1500},
+  {id:'xp3500',icon:'👑',name:'유니오니스트',desc:'총 3500 XP 돌파',condition:s=>s.totalXp>=3500},
+  {id:'res3',icon:'🎪',name:'3결심 동시 운영',desc:'결심 3개 이상 활성화',condition:s=>s.resolutions.filter(r=>r.active).length>=3},
+  {id:'coins100',icon:'🪙',name:'코인 100개',desc:'코인 100개 이상 보유',condition:s=>s.coins>=100},
+  {id:'history30',icon:'📅',name:'한달 기록',desc:'30일 이상 기록 달성',condition:s=>s.history.length>=30},
+];
+
+// ══════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════
+function freshTodayData(type){
+  if(type==='abstinence') return {incidentCount:0,cravings:[],nobuyChecked:false};
+  if(type==='training') return {minutes:0,checked:false};
+  if(type==='financial') return {amount:0,checked:false};
+  return {checked:false,note:''};
+}
+
+function defaultState(){
+  return{
+    totalXp:0,coins:0,streak:0,lastDate:null,coinHistory:[],
+    resolutions:[],
+    goals:[],following:[],
+    receivables:[],history:[],badges:[],
+    tutorial:{shown:false},
+    _v:3
+  };
+}
+
+// Migrate from old jakshim3 format
+function migrate(){
+  const old=localStorage.getItem('jakshim3');
+  if(!old) return null;
+  try{
+    const o=JSON.parse(old);
+    const ns=defaultState();
+    ns.totalXp=o.totalXp||0;
+    ns.coins=o.coins||0;
+    ns.streak=o.streak||0;
+    ns.lastDate=o.lastDate||null;
+    // migrate old single bigGoal → goals array
+    if(o.bigGoal&&o.bigGoal.text){ns.goals=[{id:'g_migrated',text:o.bigGoal.text,start:o.bigGoal.start||'',end:o.bigGoal.end||'',subGoals:(o.subGoals||[]).map(sg=>({text:sg.text,desc:'',dueDate:'',done:sg.done||false,doneAt:null}))}];}
+    ns.receivables=o.receivables||[];
+    ns.history=(o.history||[]).map(h=>({
+      date:h.date,xpEarned:h.xpEarned||0,coinsEarned:h.coinsEarned||0,streak:h.streak||0,checks:[]
+    }));
+    ns.coinHistory=o.coinHistory||[];
+    ns.tutorial={shown:true}; // don't show tutorial if migrating
+    return ns;
+  }catch(e){return null;}
+}
+
+let S=JSON.parse(localStorage.getItem('jakshim4')||'null')||(migrate()||defaultState());
+if(!S.resolutions) S.resolutions=[];
+if(!S.badges) S.badges=[];
+if(!S.tutorial) S.tutorial={shown:false};
+if(!S.history) S.history=[];
+if(!S.coinHistory) S.coinHistory=[];
+if(!S.goals){
+  // migrate from old bigGoal+subGoals format (jakshim4 _v:2)
+  if(S.bigGoal&&S.bigGoal.text){S.goals=[{id:'g_'+Date.now(),text:S.bigGoal.text,start:S.bigGoal.start||'',end:S.bigGoal.end||'',subGoals:(S.subGoals||[]).map(sg=>({text:sg.text,desc:sg.desc||'',dueDate:sg.dueDate||'',done:sg.done||false,doneAt:sg.doneAt||null}))}];}
+  else S.goals=[];
+  delete S.bigGoal; delete S.subGoals;
+  save();
+}
+
+function save(){localStorage.setItem('jakshim4',JSON.stringify(S));}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ══════════════════════════════════════════════════
+// DAY RESET
+// ══════════════════════════════════════════════════
+function checkDayReset(){
+  const today=todayStr();
+  if(S.lastDate===today) return;
+  if(S.lastDate && S.resolutions.length>0){
+    const active=S.resolutions.filter(r=>r.active);
+    const successes=active.filter(r=>isResSuccess(r)).length;
+    if(active.length>0 && successes/active.length>=0.5) S.streak++;
+    else if(active.length>0) S.streak=0;
+    const xpTotal=active.reduce((a,r)=>a+calcDayXp(r),0);
+    const coinTotal=active.reduce((a,r)=>a+calcDayCoin(r),0);
+    S.history.unshift({
+      date:S.lastDate,
+      xpEarned:xpTotal,coinsEarned:coinTotal,streak:S.streak,
+      checks:active.map(r=>({id:r.id,name:r.name,type:r.type,success:isResSuccess(r)}))
+    });
+    if(S.history.length>365) S.history.pop();
+  }
+  S.resolutions.forEach(r=>{r.todayData=freshTodayData(r.type);});
+  S.lastDate=today;
+  save();
+}
+
+function isResSuccess(r){
+  const td=r.todayData||{};
+  if(r.type==='habit') return !!td.checked;
+  if(r.type==='abstinence'){
+    const max=r.config.maxAllowed||0;
+    return (td.incidentCount||0)<=max;
+  }
+  if(r.type==='training') return (td.minutes||0)>=(r.config.dailyTarget||1);
+  if(r.type==='financial') return (td.amount||0)>0;
+  if(r.type==='goal'){
+    const ms=r.config.milestones||[];
+    return ms.some(m=>m.done);
+  }
+  return false;
+}
+
+function calcDayXp(r){
+  if(!isResSuccess(r)) return 0;
+  const base=r.reward.xpPerComplete||30;
+  const diff=parseFloat(r.reward.difficulty||1.5);
+  const streak=r.reward.streakBonus?(S.streak>0?Math.min(S.streak,7)*0.1:0):0;
+  // Abstinence craving bonus
+  let bonus=0;
+  if(r.type==='abstinence') bonus=(r.todayData.cravings||[]).length*5;
+  return Math.round(base*diff)+bonus;
+}
+
+function calcDayCoin(r){
+  if(!isResSuccess(r)) return 0;
+  return r.reward.coinPerComplete||15;
+}
+
+// ══════════════════════════════════════════════════
+// XP / COINS
+// ══════════════════════════════════════════════════
+function addXpCoin(xp,coin,reason){
+  S.totalXp+=xp; S.coins+=coin;
+  S.coinHistory.unshift({reason,coin,xp,time:new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})});
+  if(S.coinHistory.length>50) S.coinHistory.pop();
+  save();
+  showToast(`+${xp} XP · +${coin}🪙  ${reason}`);
+}
+
+function getLevel(xp){for(let i=LEVELS.length-1;i>=0;i--) if(xp>=LEVELS[i].min) return LEVELS[i]; return LEVELS[0];}
+
+// ══════════════════════════════════════════════════
+// RESOLUTIONS CRUD
+// ══════════════════════════════════════════════════
+let _newResType=null;
+let _editResId=null;
+
+function openNewResModal(){
+  _newResType=null;
+  _newResStep=1;
+  buildTypeGrid();
+  showResStep(1);
+  document.getElementById('newResModal').classList.add('open');
+}
+let _newResStep=1;
+
+function showResStep(n){
+  _newResStep=n;
+  [1,2,3,4].forEach(i=>document.getElementById('resStep'+i).style.display=i===n?'':'none');
+  const dots=document.getElementById('stepDots');
+  dots.innerHTML=[1,2,3,4].map(i=>`<div class="step-dot${i===n?' active':''}"></div>`).join('');
+  if(n===3) buildTypeConfig();
+  if(n===4) document.getElementById('resGoalId').innerHTML=buildGoalOptions('');
+}
+
+function buildTypeGrid(){
+  const el=document.getElementById('typeGrid'); el.innerHTML='';
+  Object.entries(RES_TYPES).forEach(([key,t])=>{
+    const d=document.createElement('div');
+    d.className='type-card'+(_newResType===key?' selected':'');
+    d.innerHTML=`<div class="t-icon">${t.icon}</div><div class="t-name">${t.label}</div><div class="t-desc">${t.desc}</div>`;
+    d.onclick=()=>{_newResType=key;buildTypeGrid();};
+    el.appendChild(d);
+  });
+}
+
+function resStepNext(n){
+  if(n===2 && !_newResType){showToast('결심 종류를 선택해 주세요');return;}
+  if(n===3){
+    const name=document.getElementById('resName').value.trim();
+    if(!name){showToast('결심 이름을 입력해 주세요');return;}
+  }
+  showResStep(n);
+}
+
+function buildTypeConfig(){
+  const el=document.getElementById('resTypeConfig'); el.innerHTML='';
+  document.getElementById('resStep3Title').textContent=RES_TYPES[_newResType].label+' 세부 설정';
+  const t=_newResType;
+  if(t==='habit'){
+    el.innerHTML=`
+      <label>체크 방식</label>
+      <select id="cfgHabitCheck">
+        <option value="binary">✅ 했다/안했다</option>
+        <option value="count">🔢 횟수 입력</option>
+      </select>
+      <label>빈도</label>
+      <select id="cfgFreq">
+        <option value="daily">매일</option>
+        <option value="weekly">주 X회</option>
+      </select>
+    `;
+  } else if(t==='abstinence'){
+    el.innerHTML=`
+      <label>하루 최대 허용 횟수 (0 = 완전 금지)</label>
+      <input type="number" id="cfgMaxAllowed" value="5" min="0" max="100">
+      <label>항목 단위 (예: 개비, 잔, 시간)</label>
+      <input type="text" id="cfgUnit" value="개비" placeholder="개비">
+      <div class="toggle-wrap" style="margin-top:10px">
+        <label class="toggle"><input type="checkbox" id="cfgCravings" checked><span class="toggle-slider"></span></label>
+        <span style="font-size:13px;font-weight:600;color:#334155">충동 극복 기록 기능</span>
+      </div>
+      <div class="toggle-wrap">
+        <label class="toggle"><input type="checkbox" id="cfgNobuy"><span class="toggle-slider"></span></label>
+        <span style="font-size:13px;font-weight:600;color:#334155">미구매 절약 계산 기능</span>
+      </div>
+      <div id="cfgNobuyPrice" style="display:none">
+        <label>개당 가격 (원)</label>
+        <input type="number" id="cfgItemPrice" value="6500" min="0">
+      </div>
+    `;
+    setTimeout(()=>{
+      document.getElementById('cfgNobuy').onchange=function(){
+        document.getElementById('cfgNobuyPrice').style.display=this.checked?'':'none';
+      };
+    },50);
+  } else if(t==='goal'){
+    el.innerHTML=`
+      <label>마일스톤 추가 (Enter로 추가)</label>
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <input type="text" id="cfgMsInput" placeholder="예: 1단계 목표..." style="flex:1">
+        <button class="btn btn-sm btn-primary" onclick="addCfgMs()">추가</button>
+      </div>
+      <div id="cfgMsList" style="max-height:120px;overflow-y:auto"></div>
+      <label style="margin-top:10px">측정 단위 (선택)</label>
+      <input type="text" id="cfgGoalUnit" placeholder="예: kg, 페이지, 만원">
+      <label>목표값 (선택)</label>
+      <input type="number" id="cfgGoalTarget" placeholder="100">
+    `;
+    window._cfgMs=[];
+  } else if(t==='training'){
+    el.innerHTML=`
+      <label>하루 목표 시간 (분)</label>
+      <input type="number" id="cfgDailyMins" value="30" min="1" max="1440">
+      <label>총 누적 목표 시간 (시간, 선택)</label>
+      <input type="number" id="cfgTotalHours" value="100" min="1" max="10000">
+    `;
+  } else if(t==='financial'){
+    el.innerHTML=`
+      <label>목표 금액</label>
+      <input type="number" id="cfgFinTarget" placeholder="1000000">
+      <label>단위</label>
+      <input type="text" id="cfgFinUnit" value="원" placeholder="원, 만원...">
+      <label>입력 빈도</label>
+      <select id="cfgFinFreq">
+        <option value="daily">매일 입력</option>
+        <option value="weekly">주 1회 입력</option>
+        <option value="monthly">월 1회 입력</option>
+      </select>
+    `;
+  }
+}
+
+function addCfgMs(){
+  const v=document.getElementById('cfgMsInput').value.trim();
+  if(!v) return;
+  window._cfgMs=window._cfgMs||[];
+  window._cfgMs.push({text:v,done:false});
+  document.getElementById('cfgMsInput').value='';
+  renderCfgMs();
+}
+
+function renderCfgMs(){
+  const el=document.getElementById('cfgMsList'); if(!el) return;
+  el.innerHTML='';
+  (window._cfgMs||[]).forEach((m,i)=>{
+    const d=document.createElement('div');
+    d.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:13px';
+    d.innerHTML=`<span style="flex:1">${m.text}</span><button onclick="removeCfgMs(${i})" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px">×</button>`;
+    el.appendChild(d);
+  });
+}
+
+function removeCfgMs(i){window._cfgMs.splice(i,1);renderCfgMs();}
+
+function buildConfig(){
+  const t=_newResType;
+  if(t==='habit') return {
+    checkType:document.getElementById('cfgHabitCheck')?.value||'binary',
+    frequency:document.getElementById('cfgFreq')?.value||'daily'
+  };
+  if(t==='abstinence') return {
+    maxAllowed:parseInt(document.getElementById('cfgMaxAllowed')?.value)||0,
+    unit:document.getElementById('cfgUnit')?.value||'회',
+    trackCravings:document.getElementById('cfgCravings')?.checked||false,
+    trackNobuy:document.getElementById('cfgNobuy')?.checked||false,
+    itemPrice:parseInt(document.getElementById('cfgItemPrice')?.value)||0,
+    nobuyDays:0, lastNobuyDate:null
+  };
+  if(t==='goal') return {
+    milestones:(window._cfgMs||[]).slice(),
+    unit:document.getElementById('cfgGoalUnit')?.value||'',
+    targetValue:parseFloat(document.getElementById('cfgGoalTarget')?.value)||null,
+    currentValue:0
+  };
+  if(t==='training') return {
+    dailyTarget:parseInt(document.getElementById('cfgDailyMins')?.value)||30,
+    totalTargetHours:parseInt(document.getElementById('cfgTotalHours')?.value)||100,
+    accumulatedMins:0
+  };
+  if(t==='financial') return {
+    targetAmount:parseFloat(document.getElementById('cfgFinTarget')?.value)||0,
+    unit:document.getElementById('cfgFinUnit')?.value||'원',
+    frequency:document.getElementById('cfgFinFreq')?.value||'daily',
+    currentAmount:0
+  };
+  return {};
+}
+
+function buildGoalOptions(selId){return '<option value="">— 목표 없음 —</option>'+S.goals.map(g=>`<option value="${g.id}"${g.id===selId?' selected':''}>${g.text}</option>`).join('');}
+function populateGoalSelects(selId=''){document.getElementById('resGoalId').innerHTML=buildGoalOptions(selId);document.getElementById('editResGoalId').innerHTML=buildGoalOptions(selId);}
+
+function saveNewResolution(){
+  const name=document.getElementById('resName').value.trim();
+  if(!name){showToast('결심 이름을 입력해 주세요');return;}
+  const t=_newResType;
+  const xp=parseInt(document.getElementById('resXp').value)||30;
+  const coin=parseInt(document.getElementById('resCoin').value)||15;
+  const diff=parseFloat(document.getElementById('resDifficulty').value)||1.5;
+  const streak=document.getElementById('resStreakBonus').checked;
+  const goalId=document.getElementById('resGoalId').value||null;
+  const res={
+    id:'res_'+Date.now(),
+    type:t,
+    name,
+    icon:document.getElementById('resIcon').value.trim()||RES_TYPES[t].icon,
+    motivation:document.getElementById('resMotivation').value.trim(),
+    active:true,
+    goalId,
+    createdAt:todayStr(),
+    config:buildConfig(),
+    reward:{xpPerComplete:xp,coinPerComplete:coin,difficulty:diff,streakBonus:streak},
+    todayData:freshTodayData(t)
+  };
+  S.resolutions.push(res);
+  save();
+  closeModal('newResModal');
+  checkBadges();
+  renderAll();
+  const firstRes=S.resolutions.length===1;
+  if(!S.tutorial.shown){S.tutorial.shown=true;save();tutNext(2);}
+  else if(firstRes) showToast('🎉 첫 번째 결심 완성!');
+}
+
+function openEditRes(id){
+  _editResId=id;
+  const r=S.resolutions.find(x=>x.id===id); if(!r) return;
+  document.getElementById('editResName').value=r.name;
+  document.getElementById('editResIcon').value=r.icon;
+  document.getElementById('editResMotivation').value=r.motivation||'';
+  document.getElementById('editResXp').value=r.reward.xpPerComplete;
+  document.getElementById('editResCoin').value=r.reward.coinPerComplete;
+  document.getElementById('editResActive').checked=r.active;
+  document.getElementById('editResGoalId').innerHTML=buildGoalOptions(r.goalId||'');
+  document.getElementById('editResModal').classList.add('open');
+}
+
+function saveEditResolution(){
+  const r=S.resolutions.find(x=>x.id===_editResId); if(!r) return;
+  r.name=document.getElementById('editResName').value.trim()||r.name;
+  r.icon=document.getElementById('editResIcon').value.trim()||r.icon;
+  r.motivation=document.getElementById('editResMotivation').value.trim();
+  r.reward.xpPerComplete=parseInt(document.getElementById('editResXp').value)||r.reward.xpPerComplete;
+  r.reward.coinPerComplete=parseInt(document.getElementById('editResCoin').value)||r.reward.coinPerComplete;
+  r.active=document.getElementById('editResActive').checked;
+  r.goalId=document.getElementById('editResGoalId').value||null;
+  save(); closeModal('editResModal'); renderAll(); renderGoals();
+}
+
+function deleteRes(id){
+  if(!confirm('이 결심을 삭제할까요?')) return;
+  S.resolutions=S.resolutions.filter(r=>r.id!==id);
+  save(); renderAll();
+}
+
+// ══════════════════════════════════════════════════
+// DAILY CHECK ACTIONS
+// ══════════════════════════════════════════════════
+function checkHabit(id){
+  const r=S.resolutions.find(x=>x.id===id); if(!r||r.todayData.checked) return;
+  r.todayData.checked=true;
+  const xp=calcDayXp(r), coin=calcDayCoin(r);
+  addXpCoin(xp,coin,r.name);
+  checkBadges(); renderAll();
+}
+
+function uncheckHabit(id){
+  const r=S.resolutions.find(x=>x.id===id); if(!r||!r.todayData.checked) return;
+  if(!confirm('완료를 취소할까요? XP·코인이 차감됩니다.')) return;
+  const xp=calcDayXp(r), coin=calcDayCoin(r);
+  S.totalXp=Math.max(0,S.totalXp-xp);
+  S.coins=Math.max(0,S.coins-coin);
+  r.todayData.checked=false;
+  save(); renderAll();
+}
+
+function adjustAbsCount(id, delta){
+  const r=S.resolutions.find(x=>x.id===id); if(!r) return;
+  r.todayData.incidentCount=Math.max(0,(r.todayData.incidentCount||0)+delta);
+  save(); renderAll();
+}
+
+function logCraving(id, action){
+  const r=S.resolutions.find(x=>x.id===id); if(!r) return;
+  if(!r.todayData.cravings) r.todayData.cravings=[];
+  r.todayData.cravings.push(action);
+  addXpCoin(5,3,'충동 극복: '+action);
+  renderAll();
+}
+
+function logCravingCustom(id){
+  const a=prompt('대신 한 행동:');
+  if(a&&a.trim()) logCraving(id,a.trim());
+}
+
+function addNobuyDay(id){
+  const r=S.resolutions.find(x=>x.id===id); if(!r) return;
+  const today=todayStr();
+  if(r.config.lastNobuyDate===today){showToast('오늘은 이미 기록했어요');return;}
+  r.config.nobuyDays=(r.config.nobuyDays||0)+1;
+  r.config.lastNobuyDate=today;
+  addXpCoin(10,10,'미구매 달성: '+r.name);
+  renderAll();
+}
+
+function boughtItem(id){
+  const r=S.resolutions.find(x=>x.id===id); if(!r) return;
+  if(!confirm('구매했나요? 연속 기록이 초기화됩니다.')) return;
+  r.config.nobuyDays=0; r.config.lastNobuyDate=null;
+  save(); renderAll();
+}
+
+let _pendingTrainingId=null;
+function submitTraining(id){
+  const r=S.resolutions.find(x=>x.id===id); if(!r) return;
+  const el=document.getElementById('trainInput_'+id);
+  const mins=parseInt(el?el.value:0)||0;
+  if(mins<=0){showToast('분 수를 입력해 주세요');return;}
+  const wasSuccess=isResSuccess(r);
+  r.todayData.minutes=(r.todayData.minutes||0)+mins;
+  r.config.accumulatedMins=(r.config.accumulatedMins||0)+mins;
+  const nowSuccess=isResSuccess(r);
+  if(nowSuccess&&!wasSuccess){
+    const xp=calcDayXp(r),coin=calcDayCoin(r);
+    addXpCoin(xp,coin,r.name+' '+mins+'분');
+    r.todayData.checked=true;
+  } else {
+    save();
+  }
+  if(el) el.value='';
+  checkBadges(); renderAll();
+}
+
+function toggleMilestone(resId, idx){
+  const r=S.resolutions.find(x=>x.id===resId); if(!r) return;
+  const ms=r.config.milestones[idx];
+  const wasDone=ms.done;
+  ms.done=!ms.done;
+  if(!wasDone&&ms.done){
+    const xp=Math.round((r.reward.xpPerComplete||30)*2);
+    addXpCoin(xp,r.reward.coinPerComplete||15,'마일스톤 달성: '+ms.text);
+  } else if(wasDone){
+    save();
+  }
+  checkBadges(); renderAll();
+}
+
+function submitFinancial(id){
+  const r=S.resolutions.find(x=>x.id===id); if(!r) return;
+  const el=document.getElementById('finInput_'+id);
+  const amt=parseFloat(el?el.value:0)||0;
+  if(amt<=0){showToast('금액을 입력해 주세요');return;}
+  r.todayData.amount=(r.todayData.amount||0)+amt;
+  r.config.currentAmount=(r.config.currentAmount||0)+amt;
+  if(!r.todayData.checked){
+    const xp=calcDayXp(r),coin=calcDayCoin(r);
+    addXpCoin(xp,coin,r.name+' '+amt+r.config.unit);
+    r.todayData.checked=true;
+  } else {
+    save();
+  }
+  if(el) el.value='';
+  renderAll();
+}
+
+// ══════════════════════════════════════════════════
+// BADGES
+// ══════════════════════════════════════════════════
+function checkBadges(){
+  ALL_BADGES.forEach(b=>{
+    if(!S.badges.includes(b.id) && b.condition(S)){
+      S.badges.push(b.id);
+      save();
+      showToast('🏆 업적 획득: '+b.name);
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════
+// RENDERING
+// ══════════════════════════════════════════════════
+function renderHeader(){
+  const lv=getLevel(S.totalXp);
+  document.getElementById('levelBadge').textContent=lv.name;
+  document.getElementById('streakNum').textContent=S.streak;
+  document.getElementById('coinDisplay').textContent=S.coins.toLocaleString();
+  const pct=lv.next?((S.totalXp-lv.min)/(lv.next-lv.min))*100:100;
+  document.getElementById('xpFill').style.width=Math.min(100,pct)+'%';
+  document.getElementById('xpText').textContent=lv.next?`총 ${S.totalXp.toLocaleString()} XP · 다음 ${(lv.next-S.totalXp).toLocaleString()} XP`:`총 ${S.totalXp.toLocaleString()} XP · 🎉 마스터!`;
+}
+
+let _todaySort='default',_todayFilter='all';
+function setTodaySort(v,btn){_todaySort=v;document.querySelectorAll('#sortChips .filter-chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderToday();}
+function setTodayFilter(v,btn){_todayFilter=v;document.querySelectorAll('#filterChips .filter-chip').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderToday();}
+
+function renderToday(){
+  const active=S.resolutions.filter(r=>r.active);
+  const todayCards=document.getElementById('todayCards');
+  const emptyMsg=document.getElementById('todayEmptyMsg');
+  if(active.length===0){todayCards.innerHTML='';emptyMsg.style.display='';return;}
+  emptyMsg.style.display='none';
+  const done=active.filter(r=>isResSuccess(r)).length;
+  const pct=active.length?Math.round(done/active.length*100):0;
+  document.getElementById('achievePct').textContent=pct;
+  document.getElementById('achieveBarFill').style.width=pct+'%';
+  const todayXpTotal=active.reduce((a,r)=>a+calcDayXp(r),0);
+  document.getElementById('todayXp').textContent=todayXpTotal;
+  document.getElementById('achieveDetail').textContent=`${done}/${active.length} 완료 · 오늘 누적 ${S.totalXp.toLocaleString()} XP`;
+  todayCards.innerHTML='';
+
+  // ── 필터 적용
+  let list=[...active];
+  if(_todayFilter==='undone') list=list.filter(r=>!isResSuccess(r));
+  else if(_todayFilter==='done') list=list.filter(r=>isResSuccess(r));
+  else if(_todayFilter==='nogoal') list=list.filter(r=>!r.goalId);
+
+  // ── 정렬/그룹 적용
+  if(_todaySort==='undone') list.sort((a,b)=>isResSuccess(a)-isResSuccess(b));
+  else if(_todaySort==='done') list.sort((a,b)=>isResSuccess(b)-isResSuccess(a));
+  else if(_todaySort==='type') list.sort((a,b)=>a.type.localeCompare(b.type));
+  else if(_todaySort==='goal'){
+    // 목표별 그룹 렌더링
+    const goalMap={};
+    list.forEach(r=>{const key=r.goalId||'__none__';if(!goalMap[key])goalMap[key]=[];goalMap[key].push(r);});
+    S.goals.forEach(g=>{
+      if(!goalMap[g.id]) return;
+      const hdr=document.createElement('div');hdr.className='today-group-hdr';
+      const gDone=goalMap[g.id].filter(r=>isResSuccess(r)).length;
+      hdr.innerHTML=`🎯 ${g.text} <span style="color:#94a3b8;font-weight:400">${gDone}/${goalMap[g.id].length}</span>`;
+      todayCards.appendChild(hdr);
+      goalMap[g.id].forEach(r=>todayCards.appendChild(buildQuestCard(r)));
+    });
+    if(goalMap['__none__']){
+      const hdr=document.createElement('div');hdr.className='today-group-hdr';hdr.style.color='#94a3b8';
+      const nd=goalMap['__none__'].filter(r=>isResSuccess(r)).length;
+      hdr.innerHTML=`📌 목표 미연결 <span style="font-weight:400">${nd}/${goalMap['__none__'].length}</span>`;
+      todayCards.appendChild(hdr);
+      goalMap['__none__'].forEach(r=>todayCards.appendChild(buildQuestCard(r)));
+    }
+    return;
+  }
+  list.forEach(r=>todayCards.appendChild(buildQuestCard(r)));
+}
+
+function buildQuestCard(r){
+  const success=isResSuccess(r);
+  const t=RES_TYPES[r.type];
+  const div=document.createElement('div');
+  div.className='quest-card'+(success?' done':'');
+  const xp=calcDayXp(r)||r.reward.xpPerComplete;
+  div.innerHTML=`
+    <div class="quest-header">
+      <div class="quest-icon" style="background:${t.color}22;color:${t.color}">${r.icon}</div>
+      <div class="quest-info">
+        <div class="quest-name">${r.name}</div>
+        <div class="quest-meta">${t.label} ${r.motivation?'· '+r.motivation.slice(0,20)+'…':''}</div>
+      </div>
+      <div class="quest-xp" style="background:${t.color}18;color:${t.color}">+${xp} XP</div>
+    </div>
+    <div class="quest-body" id="qbody_${r.id}"></div>
+  `;
+  const body=div.querySelector('#qbody_'+r.id);
+  if(r.type==='habit') buildHabitBody(body,r);
+  else if(r.type==='abstinence') buildAbsBody(body,r);
+  else if(r.type==='training') buildTrainingBody(body,r);
+  else if(r.type==='goal') buildGoalBody(body,r);
+  else if(r.type==='financial') buildFinBody(body,r);
+  return div;
+}
+
+function buildHabitBody(el,r){
+  const checked=r.todayData.checked;
+  el.innerHTML=`
+    <button class="big-check-btn ${checked?'checked':'unchecked'}" ${checked?'disabled':''} onclick="checkHabit('${r.id}')">
+      ${checked?'✓ 완료!':'오늘 완료하기'}
+    </button>
+    ${checked?`<button class="undo-btn" onclick="uncheckHabit('${r.id}')">↩ 완료 취소</button>`:''}
+  `;
+}
+
+function buildAbsBody(el,r){
+  const td=r.todayData;
+  const count=td.incidentCount||0;
+  const max=r.config.maxAllowed||0;
+  const unit=r.config.unit||'회';
+  const diff=max-count;
+  let statusCls,statusTxt;
+  if(diff>0){statusCls='abs-ok';statusTxt=`목표까지 ${diff}${unit} 여유`;}
+  else if(diff===0){statusCls='abs-warn';statusTxt='목표 한계';}
+  else{statusCls='abs-bad';statusTxt=`목표 ${Math.abs(diff)}${unit} 초과`;}
+
+  let html=`
+    <div style="font-size:12px;color:#64748b;margin-top:2px">오늘 ${unit}: <span style="font-size:11px;color:#94a3b8">목표: ${max}${unit} 이하</span></div>
+    <div class="abs-counter-row">
+      <button class="abs-btn" onclick="adjustAbsCount('${r.id}',-1)">−</button>
+      <div class="abs-num" style="color:${diff<0?'#dc2626':diff===0?'#d97706':'#16a34a'}">${count}</div>
+      <button class="abs-btn" onclick="adjustAbsCount('${r.id}',1)">+</button>
+      <span class="abs-status ${statusCls}">${statusTxt}</span>
+    </div>
+  `;
+  if(r.config.trackCravings){
+    html+=`<div style="font-size:11px;color:#92400e;font-weight:600;margin-top:10px">💪 충동 극복 +5XP</div>
+    <div class="craving-row">
+      <button class="craving-btn" onclick="logCraving('${r.id}','💧 물 마시기')">💧 물</button>
+      <button class="craving-btn" onclick="logCraving('${r.id}','🚶 산책')">🚶 산책</button>
+      <button class="craving-btn" onclick="logCraving('${r.id}','💪 운동')">💪 운동</button>
+      <button class="craving-btn" onclick="logCraving('${r.id}','🧘 심호흡')">🧘 심호흡</button>
+      <button class="craving-btn" onclick="logCravingCustom('${r.id}')">✏️ 직접</button>
+    </div>`;
+    if((td.cravings||[]).length>0) html+=`<div style="font-size:11px;color:#b45309;margin-top:4px">기록: ${td.cravings.slice(-3).join(', ')}</div>`;
+  }
+  if(r.config.trackNobuy){
+    const price=r.config.itemPrice||0;
+    const days=r.config.nobuyDays||0;
+    const saved=days*price;
+    html+=`
+      <div class="abs-streak-row">
+        <div class="abs-streak-days">${days}</div>
+        <div class="abs-streak-info">🚫 미구매 연속일<br><span style="color:#4ade80">절약액: ${saved.toLocaleString()}원</span></div>
+        <button class="btn btn-sm" style="font-size:10px;color:#16a34a;border-color:#86efac" onclick="addNobuyDay('${r.id}')">✓ 오늘 안샀어요</button>
+      </div>
+      <button class="btn btn-sm" style="font-size:10px;margin-top:4px" onclick="boughtItem('${r.id}')">구매했어요</button>
+    `;
+  }
+  el.innerHTML=html;
+}
+
+function buildTrainingBody(el,r){
+  const mins=r.todayData.minutes||0;
+  const target=r.config.dailyTarget||30;
+  const acc=r.config.accumulatedMins||0;
+  const totalTarget=(r.config.totalTargetHours||100)*60;
+  const pct=Math.min(100,Math.round(mins/target*100));
+  const totalPct=Math.min(100,Math.round(acc/totalTarget*100));
+  const done=r.todayData.checked;
+  el.innerHTML=`
+    <div class="training-total">오늘 ${mins}분 / 목표 ${target}분 · 총 누적 ${Math.round(acc/60*10)/10}h / ${r.config.totalTargetHours}h</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" style="width:${pct}%;background:#059669"></div>
+    </div>
+    <div class="training-total" style="color:#059669">전체 진행률 ${totalPct}%</div>
+    <div class="training-input-row">
+      <label>오늘 추가</label>
+      <input type="number" id="trainInput_${r.id}" placeholder="${target}" min="0" max="1440">
+      <span style="font-size:12px;color:#64748b">분</span>
+      <button class="btn btn-sm btn-primary" onclick="submitTraining('${r.id}')">기록</button>
+    </div>
+    ${done?'<div style="font-size:12px;color:#16a34a;font-weight:600;margin-top:6px">✓ 오늘 목표 달성!</div>':''}
+  `;
+}
+
+function buildGoalBody(el,r){
+  const ms=r.config.milestones||[];
+  const doneCnt=ms.filter(m=>m.done).length;
+  const pct=ms.length?Math.round(doneCnt/ms.length*100):0;
+  let html=`<div style="font-size:12px;color:#64748b;margin-top:4px">마일스톤 ${doneCnt}/${ms.length} · ${pct}% 완료</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%;background:#7c3aed"></div></div>`;
+  if(ms.length===0) html+='<div style="font-size:12px;color:#94a3b8;margin-top:8px;padding:8px;background:#f8fafc;border-radius:8px">마일스톤을 추가하면 여기서 체크할 수 있어요</div>';
+  ms.forEach((m,i)=>{
+    html+=`<div class="milestone-item">
+      <div class="milestone-check${m.done?' done':''}" onclick="toggleMilestone('${r.id}',${i})">${m.done?'✓':''}</div>
+      <span class="milestone-text${m.done?' done':''}">${m.text}</span>
+    </div>`;
+  });
+  if(r.config.unit&&r.config.targetValue){
+    html+=`<div style="font-size:12px;color:#64748b;margin-top:8px">측정값: ${r.config.currentValue||0} / ${r.config.targetValue} ${r.config.unit}</div>`;
+  }
+  el.innerHTML=html;
+}
+
+function buildFinBody(el,r){
+  const current=r.config.currentAmount||0;
+  const target=r.config.targetAmount||0;
+  const unit=r.config.unit||'원';
+  const pct=target>0?Math.min(100,Math.round(current/target*100)):0;
+  el.innerHTML=`
+    <div class="fin-progress">목표 ${target.toLocaleString()} ${unit} · 현재 ${current.toLocaleString()} ${unit} (${pct}%)</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" style="width:${pct}%;background:#d97706"></div>
+    </div>
+    <div class="fin-input-row">
+      <input type="number" id="finInput_${r.id}" placeholder="오늘 추가..." min="0">
+      <span class="fin-unit">${unit}</span>
+      <button class="btn btn-sm btn-primary" onclick="submitFinancial('${r.id}')">기록</button>
+    </div>
+    ${r.todayData.checked?'<div style="font-size:12px;color:#16a34a;font-weight:600;margin-top:6px">✓ 오늘 기록 완료!</div>':''}
+  `;
+}
+
+function renderResList(){
+  const el=document.getElementById('resList');
+  if(S.resolutions.length===0){
+    el.innerHTML=`<div class="empty"><div style="font-size:36px;margin-bottom:8px">🎯</div>아직 결심이 없습니다<br><button class="btn btn-primary" style="margin-top:12px" onclick="openNewResModal()">첫 결심 세우기</button></div>`;
+    return;
+  }
+  el.innerHTML='';
+  S.resolutions.forEach(r=>{
+    const t=RES_TYPES[r.type];
+    const div=document.createElement('div');
+    div.className='res-list-item';
+    div.style.opacity=r.active?1:0.5;
+    div.innerHTML=`
+      <div class="res-list-icon" style="background:${t.color}22;color:${t.color}">${r.icon}</div>
+      <div class="res-list-info">
+        <div class="res-list-name">${r.name}</div>
+        <div class="res-list-type">${t.icon} ${t.label} · +${r.reward.xpPerComplete} XP · ${r.active?'활성':'비활성'}</div>
+      </div>
+      <div class="res-list-actions">
+        <button class="icon-btn" onclick="openEditRes('${r.id}')">✏️</button>
+        <button class="icon-btn" onclick="deleteRes('${r.id}')">🗑️</button>
+      </div>
+    `;
+    el.appendChild(div);
+  });
+}
+
+function renderBadges(){
+  const el=document.getElementById('badgeGrid'); el.innerHTML='';
+  ALL_BADGES.forEach(b=>{
+    const unlocked=S.badges.includes(b.id);
+    const div=document.createElement('div');
+    div.className='badge-item '+(unlocked?'unlocked':'locked');
+    div.innerHTML=`<div class="badge-emoji">${b.icon}</div><div class="badge-name">${b.name}</div><div class="badge-desc">${b.desc}</div>`;
+    el.appendChild(div);
+  });
+  if(S.badges.length===0){
+    const p=document.createElement('p');
+    p.style.cssText='font-size:12px;color:#94a3b8;text-align:center;grid-column:1/-1;padding:8px 0';
+    p.textContent='결심을 완료하면 업적이 열립니다';
+    el.appendChild(p);
+  }
+}
+
+// ── GOALS ──
+let _editGoalIdx=-1,_sgGoalIdx=-1,_editSgIdx=-1;
+function openGoalModal(idx){
+  _editGoalIdx=idx;
+  const g=idx>=0?S.goals[idx]:{text:'',start:'',end:''};
+  document.getElementById('goalModalTitle').textContent=idx>=0?'목표 수정':'큰 목표 추가';
+  document.getElementById('goalTextInput').value=g.text;
+  document.getElementById('goalStartInput').value=g.start||'';
+  document.getElementById('goalEndInput').value=g.end||'';
+  document.getElementById('goalModal').classList.add('open');
+  setTimeout(()=>document.getElementById('goalTextInput').focus(),100);
+}
+function saveGoal(){
+  const text=document.getElementById('goalTextInput').value.trim();
+  if(!text){showToast('목표를 입력해 주세요');return;}
+  const start=document.getElementById('goalStartInput').value;
+  const end=document.getElementById('goalEndInput').value;
+  if(_editGoalIdx>=0){Object.assign(S.goals[_editGoalIdx],{text,start,end});}
+  else S.goals.push({id:'g_'+Date.now(),text,start,end,subGoals:[]});
+  save();closeModal('goalModal');renderGoals();
+}
+function removeGoal(gi){if(!confirm('목표를 삭제하면 결실도 모두 삭제됩니다. 계속할까요?'))return;S.goals.splice(gi,1);save();renderGoals();}
+function addSubGoal(gi){_sgGoalIdx=gi;_editSgIdx=-1;document.getElementById('sgModalTitle').textContent='결실 추가';document.getElementById('sgInput').value='';document.getElementById('sgDescInput').value='';document.getElementById('sgDueInput').value='';document.getElementById('sgModal').classList.add('open');setTimeout(()=>document.getElementById('sgInput').focus(),100);}
+function editSubGoal(gi,si){_sgGoalIdx=gi;_editSgIdx=si;const sg=S.goals[gi].subGoals[si];document.getElementById('sgModalTitle').textContent='결실 수정';document.getElementById('sgInput').value=sg.text;document.getElementById('sgDescInput').value=sg.desc||'';document.getElementById('sgDueInput').value=sg.dueDate||'';document.getElementById('sgModal').classList.add('open');setTimeout(()=>document.getElementById('sgInput').focus(),100);}
+function saveSg(){const t=document.getElementById('sgInput').value.trim();if(!t){showToast('결실 내용을 입력해 주세요');return;}const desc=document.getElementById('sgDescInput').value.trim();const dueDate=document.getElementById('sgDueInput').value;const sgs=S.goals[_sgGoalIdx].subGoals;if(_editSgIdx>=0){sgs[_editSgIdx].text=t;sgs[_editSgIdx].desc=desc;sgs[_editSgIdx].dueDate=dueDate;}else sgs.push({text:t,desc,dueDate,done:false,doneAt:null});save();closeModal('sgModal');renderGoals();}
+function toggleSubGoal(gi,si){const sg=S.goals[gi].subGoals[si];sg.done=!sg.done;sg.doneAt=sg.done?todayStr():null;save();renderGoals();}
+function removeSubGoal(gi,si){if(!confirm('삭제?'))return;S.goals[gi].subGoals.splice(si,1);save();renderGoals();}
+function renderGoals(){
+  const gl=document.getElementById('goalsList');
+  if(!S.goals.length){gl.innerHTML='<div class="empty">목표를 추가해 보세요</div>';return;}
+  gl.innerHTML='';
+  S.goals.forEach((g,gi)=>{
+    const total=g.subGoals.length,done=g.subGoals.filter(x=>x.done).length;
+    const pct=total?Math.round(done/total*100):0;
+    const isComplete=total>0&&done===total;
+    const wrap=document.createElement('div');
+    wrap.className='big-goal-card';
+    wrap.style.marginBottom='14px';
+    if(isComplete)wrap.style.background='linear-gradient(135deg,#f0fdf4,#dcfce7)',wrap.style.borderColor='#86efac';
+    const dateTxt=g.start&&g.end?`${g.start} ~ ${g.end}`:'기간 미설정';
+    wrap.innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+        <div class="big-goal-label">${isComplete?'✅ 달성완료':'🎯 큰 목표'}</div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm" onclick="openGoalModal(${gi})">✏️</button>
+          <button class="btn btn-sm" style="color:#ef4444;border-color:#fecaca" onclick="removeGoal(${gi})">🗑️</button>
+        </div>
+      </div>
+      <div class="big-goal-text">${g.text}</div>
+      <div class="goal-progress-bg"><div class="goal-progress-fill" style="width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;margin-bottom:10px">
+        <span style="font-size:11px;color:#0284c7">${dateTxt}</span>
+        <span style="font-size:11px;font-weight:700;color:#0284c7">결실 ${done}/${total}</span>
+      </div>
+      <div class="res-linked-${gi}" style="margin-bottom:6px"></div>
+      <div class="sg-list-${gi}"></div>
+      <button class="btn" style="width:100%;margin-top:8px" onclick="addSubGoal(${gi})">+ 결실 추가</button>
+    `;
+    gl.appendChild(wrap);
+    // render linked resolutions
+    const rl=wrap.querySelector('.res-linked-'+gi);
+    const linked=S.resolutions.filter(r=>r.goalId===g.id);
+    if(linked.length){
+      const hdr=document.createElement('div');
+      hdr.style.cssText='font-size:11px;font-weight:700;color:#64748b;margin-bottom:6px;display:flex;align-items:center;gap:4px';
+      hdr.innerHTML=`⚔️ 연결된 결심 <span style="background:#e2e8f0;border-radius:8px;padding:1px 6px">${linked.length}</span>`;
+      rl.appendChild(hdr);
+      linked.forEach(r=>{
+        const t=RES_TYPES[r.type];const ok=isResSuccess(r);
+        const chip=document.createElement('div');
+        chip.style.cssText='display:flex;align-items:center;gap:7px;padding:7px 10px;background:'+(ok?'#f0fdf4':'#f8fafc')+';border:1px solid '+(ok?'#86efac':'#e2e8f0')+';border-radius:9px;margin-bottom:5px';
+        chip.innerHTML=`<span style="font-size:15px">${r.icon||t.icon}</span><span style="flex:1;font-size:12px;font-weight:600;color:#334155">${r.name}</span><span style="font-size:10px;padding:2px 6px;border-radius:6px;background:${t.color}22;color:${t.color};font-weight:700">${t.label}</span><span style="font-size:12px">${ok?'✅':'⬜'}</span>`;
+        rl.appendChild(chip);
+      });
+    }
+    // render sub-goals
+    const sl=wrap.querySelector('.sg-list-'+gi);
+    if(!g.subGoals.length){sl.innerHTML='<div class="empty" style="font-size:12px;padding:8px 0">결실을 추가해 이 목표를 채워가세요</div>';}
+    else g.subGoals.forEach((sg,si)=>{
+      const d=document.createElement('div');d.className='subgoal-item'+(sg.done?' done':'');
+      const dueTxt=sg.dueDate?`<span style="font-size:10px;color:${sg.done?'#86efac':'#94a3b8'};margin-left:4px">~${sg.dueDate}</span>`:'';
+      const descTxt=sg.desc?`<div style="font-size:11px;color:#94a3b8;margin-top:2px">${sg.desc}</div>`:'';
+      d.innerHTML=`<div class="subgoal-check" onclick="toggleSubGoal(${gi},${si})">${sg.done?'✓':''}</div><div style="flex:1;min-width:0"><div style="display:flex;align-items:center"><span class="subgoal-text">${sg.text}</span>${dueTxt}</div>${descTxt}</div><button class="icon-btn" onclick="editSubGoal(${gi},${si})">✏️</button><button class="icon-btn" onclick="removeSubGoal(${gi},${si})">🗑️</button>`;
+      sl.appendChild(d);
+    });
+  });
+}
+
+// ── HISTORY ──
+let _histFilter='day';
+function setHistFilter(mode,btn){_histFilter=mode;document.querySelectorAll('.hist-filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderHistory();}
+function renderHistory(){
+  const recs=S.history;
+  if(!recs||recs.length===0){
+    document.getElementById('histSummary').innerHTML='';
+    document.getElementById('histTable').innerHTML='<div class="empty">아직 기록이 없습니다<br><span style="font-size:11px">미션을 완료하면 자동으로 기록됩니다</span></div>';
+    return;
+  }
+  let data=[];
+  if(_histFilter==='day') data=recs.slice(0,30).map(r=>({...r,label:r.date}));
+  else if(_histFilter==='week'){
+    const weeks={};
+    recs.forEach(r=>{const d=new Date(r.date);const mon=new Date(d);mon.setDate(d.getDate()-(d.getDay()===0?6:d.getDay()-1));const key=mon.toISOString().split('T')[0];if(!weeks[key])weeks[key]={label:key+'주',xpEarned:0,coinsEarned:0,streak:r.streak,days:0};weeks[key].xpEarned+=r.xpEarned;weeks[key].coinsEarned+=r.coinsEarned;weeks[key].days++;});
+    data=Object.values(weeks).slice(0,12);
+  } else {
+    const months={};
+    recs.forEach(r=>{const key=r.date.slice(0,7);if(!months[key])months[key]={label:key.replace('-','년 ')+'월',xpEarned:0,coinsEarned:0,streak:r.streak,days:0};months[key].xpEarned+=r.xpEarned;months[key].coinsEarned+=r.coinsEarned;months[key].days++;});
+    data=Object.values(months).slice(0,12);
+  }
+  const totXp=data.reduce((a,r)=>a+r.xpEarned,0);
+  const totCoin=data.reduce((a,r)=>a+r.coinsEarned,0);
+  const maxXp=data.reduce((a,r)=>Math.max(a,r.xpEarned),0);
+  document.getElementById('histSummary').innerHTML=`
+    <div class="hist-sum-card"><div class="hist-sum-val">${totXp.toLocaleString()}</div><div class="hist-sum-lbl">총 XP</div></div>
+    <div class="hist-sum-card"><div class="hist-sum-val">${totCoin.toLocaleString()}</div><div class="hist-sum-lbl">총 코인</div></div>
+    <div class="hist-sum-card"><div class="hist-sum-val">${S.streak}</div><div class="hist-sum-lbl">현재 연속</div></div>
+    <div class="hist-sum-card"><div class="hist-sum-val">${recs.length}</div><div class="hist-sum-lbl">기록 일수</div></div>
+  `;
+  let html=`<div class="hist-row header"><div>날짜</div><div>XP</div><div>코인</div><div>연속</div></div>`;
+  data.forEach(r=>{const bp=maxXp>0?Math.round(r.xpEarned/maxXp*100):0;html+=`<div class="hist-row"><div style="font-size:11px;font-weight:600;color:#334155">${r.label}</div><div class="hist-xp">+${r.xpEarned}<div class="hist-bar-wrap"><div class="hist-bar" style="width:${bp}%"></div></div></div><div class="hist-coin">🪙${r.coinsEarned}</div><div style="font-size:12px;color:#f59e0b;font-weight:700">${r.streak||0}🔥</div></div>`;});
+  document.getElementById('histTable').innerHTML=html;
+}
+
+// ── RECEIVABLES ──
+let _editRecIdx=-1;
+function openRecModal(idx){_editRecIdx=idx;if(idx>=0){const r=S.receivables[idx];document.getElementById('recModalTitle').textContent='미수금 수정';document.getElementById('recNameIn').value=r.name;document.getElementById('recAmtIn').value=r.amount;document.getElementById('recStatusIn').value=r.status;}else{document.getElementById('recModalTitle').textContent='미수금 추가';document.getElementById('recNameIn').value='';document.getElementById('recAmtIn').value='';document.getElementById('recStatusIn').value='ok';}document.getElementById('recModal').classList.add('open');}
+function saveRec(){const name=document.getElementById('recNameIn').value.trim();const amt=parseInt(document.getElementById('recAmtIn').value)||0;if(!name||amt<=0){showToast('이름과 금액을 입력해 주세요');return;}const rec={name,amount:amt,status:document.getElementById('recStatusIn').value};if(_editRecIdx>=0)S.receivables[_editRecIdx]=rec;else S.receivables.push(rec);save();closeModal('recModal');renderRec();}
+function removeRec(i){if(!confirm('삭제?'))return;S.receivables.splice(i,1);save();renderRec();}
+function renderRec(){
+  const el=document.getElementById('recList');
+  if(!S.receivables.length){el.innerHTML='<div class="empty">미수금이 없습니다 👍</div>';document.getElementById('recTotalRow').style.display='none';return;}
+  el.innerHTML='';let total=0;
+  const sMap={urgent:['1개월+ 지연','rs-urgent'],warn:['1~2주 지연','rs-warn'],ok:['납기 이내','rs-ok']};
+  S.receivables.forEach((r,i)=>{total+=r.amount;const[stxt,scls]=sMap[r.status]||['납기 이내','rs-ok'];const div=document.createElement('div');div.className='rec-item';div.innerHTML=`<span class="rec-name">${r.name}</span><span class="rec-amt">${r.amount.toLocaleString()}만원</span><span class="rec-status ${scls}">${stxt}</span><button class="btn btn-sm" style="color:#2563eb;border-color:#bfdbfe" onclick="openRecModal(${i})">수정</button><button class="btn btn-sm btn-danger" onclick="removeRec(${i})">삭제</button>`;el.appendChild(div);});
+  document.getElementById('recTotalRow').style.display='flex';
+  document.getElementById('recTotalAmt').textContent=total.toLocaleString()+'만원';
+}
+
+// ── TABS ──
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{b.classList.remove('active');});
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const tabs=['today','resolutions','achievements','goals','history','rec'];
+  const idx=tabs.indexOf(name);
+  if(idx>=0) document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+  if(name==='achievements') renderBadges();
+  if(name==='goals') renderGoals();
+  if(name==='history') renderHistory();
+  if(name==='rec') renderRec();
+}
+
+// ── TUTORIAL ──
+function tutNext(step){
+  [0,1,2].forEach(i=>document.getElementById('tutStep'+i).style.display='none');
+  document.getElementById('tutStep'+step).style.display='';
+  document.getElementById('tutorialOverlay').classList.add('open');
+}
+function closeTutorial(){document.getElementById('tutorialOverlay').classList.remove('open');}
+
+// ── TOAST ──
+let _toastTimer=null;
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+// ── RENDER ALL ──
+function renderAll(){renderHeader();renderToday();renderResList();}
+
+// ── INIT ──
+checkDayReset();
+renderAll();
+renderGoals();
+renderRec();
+if(!S.tutorial.shown && S.resolutions.length===0){
+  S.tutorial.shown=false;
+  tutNext(0);
+}
+</script>
+</body>
+</html>
